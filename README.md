@@ -36,8 +36,7 @@
 
 | 3. 历史记录 & 配置管理 | 4. 自动代理 |
 | :---: | :---: |
-| ![History](screenshot/mcp-partner-screenshot-3.png) | 
-![AutoProxy](screenshot/mcp-partner-screenshot-4.png) |
+| ![History](screenshot/mcp-partner-screenshot-3.png) | ![AutoProxy](screenshot/mcp-partner-screenshot-4.png) |
 
 ## 常见问题：CORS 跨域
 
