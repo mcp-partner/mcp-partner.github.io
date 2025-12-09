@@ -8,7 +8,7 @@
 
 点击此处直接访问
 
-[https://mcp-partner.vercel.app/](https://mcp-partner.vercel.app/)
+[https://ericwyn.github.io/mcp-partner](https://ericwyn.github.io/mcp-partner)
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Version](https://img.shields.io/badge/version-0.3.0-green.svg)

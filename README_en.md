@@ -10,6 +10,9 @@ A Postman-like interface for testing and interacting with Model Context Protocol
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Version](https://img.shields.io/badge/version-0.3.0-green.svg)
 
+
+visit here [https://ericwyn.github.io/mcp-partner](https://ericwyn.github.io/mcp-partner)
+
 ## Features
 
 - **Instant Access**: Pure web application. No installation required, works directly in your browser.
