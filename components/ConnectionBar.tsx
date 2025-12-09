@@ -21,6 +21,20 @@ interface HeaderItem {
 
 const DEFAULT_PROXY_URL = '/cors?url=';
 
+// Helper for normalization
+const normalizeTransport = (t: string | undefined | null): TransportType => {
+    if (!t) return 'sse';
+    const val = String(t).trim().toLowerCase();
+    if (val === 'http' || val === 'streamable_http' || val === 'streamable http') {
+        return 'streamable_http';
+    }
+    return 'sse';
+};
+
+const isStreamTransport = (t: string | undefined | null): boolean => {
+     return normalizeTransport(t) === 'streamable_http';
+}
+
 export const ConnectionBar: React.FC<ConnectionBarProps> = ({ 
   status, onConnect, onDisconnect, lang, setLang, theme, toggleTheme 
 }) => {
@@ -128,7 +142,7 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
                         loadedServers[uniqueName] = {
                             url: (c as any).url,
                             headers: headerRecord,
-                            type: 'sse'
+                            type: normalizeTransport((c as any).type)
                         };
                         
                         loadedExtensions[uniqueName] = {
@@ -157,7 +171,11 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
     } else {
         setProxyPrefix(globalProxyPrefix);
     }
-    if (lastTransport === 'http') setTransport('http');
+    
+    // Backward compatibility for 'http' -> 'streamable_http' and variants
+    if (lastTransport) {
+        setTransport(normalizeTransport(lastTransport));
+    }
 
   }, []);
 
@@ -296,7 +314,8 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
 
       if (server) {
           setUrl(server.url);
-          setTransport(server.type || 'sse');
+          setTransport(normalizeTransport(server.type));
+          
           const headerArray = Object.entries(server.headers || {}).map(([k, v]) => ({
               id: Math.random().toString(36).substr(2, 9),
               key: k,
@@ -411,9 +430,10 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
                   while (newServerRegistry[finalKey] && newServerRegistry[finalKey].url !== url) {
                       finalKey = `${name}-${counter++}`;
                   }
+                  
                   newServerRegistry[finalKey] = {
                       url: url,
-                      type: rawConfig.type || 'sse', 
+                      type: normalizeTransport(rawConfig.type), 
                       headers: rawConfig.headers ? { ...rawConfig.headers } : {}
                   };
                   if (parsed.mcpExtensions && parsed.mcpExtensions[key]) {
@@ -496,9 +516,10 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
                        let counter = 1;
                        while (newServers[finalKey]) { finalKey = `${name}-${counter++}`; }
                   }
+
                   newServers[finalKey] = {
                       url: url,
-                      type: rawConfig.type || 'sse',
+                      type: normalizeTransport(rawConfig.type),
                       headers: rawConfig.headers ? { ...rawConfig.headers } : {}
                   };
              });
@@ -512,7 +533,9 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
              const url = rawConfig.url || rawConfig.baseUrl;
              const name = rawConfig.name || firstKey;
              setUrl(url || '');
-             setTransport(rawConfig.type || 'sse');
+             
+             setTransport(normalizeTransport(rawConfig.type));
+
              const newHeaders: HeaderItem[] = [];
              if (rawConfig.headers) {
                  Object.entries(rawConfig.headers).forEach(([k, v]) => {
@@ -590,16 +613,16 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
 
                             <button 
                                 type="button"
-                                onClick={() => { setTransport('http'); setShowTransport(false); }}
-                                className={`w-full text-left px-3 py-3 rounded-md flex items-start gap-3 transition-colors ${transport === 'http' ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                                onClick={() => { setTransport('streamable_http'); setShowTransport(false); }}
+                                className={`w-full text-left px-3 py-3 rounded-md flex items-start gap-3 transition-colors ${transport === 'streamable_http' ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                             >
-                                <div className={`mt-0.5 p-1 rounded-full ${transport === 'http' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-700'}`}>
+                                <div className={`mt-0.5 p-1 rounded-full ${transport === 'streamable_http' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-700'}`}>
                                     <Monitor className="w-3 h-3" />
                                 </div>
                                 <div>
-                                    <div className={`text-sm font-semibold flex items-center gap-2 ${transport === 'http' ? 'text-blue-700 dark:text-blue-400' : 'text-gray-900 dark:text-gray-200'}`}>
+                                    <div className={`text-sm font-semibold flex items-center gap-2 ${transport === 'streamable_http' ? 'text-blue-700 dark:text-blue-400' : 'text-gray-900 dark:text-gray-200'}`}>
                                         Streamable HTTP
-                                        {transport === 'http' && <Check className="w-3.5 h-3.5" />}
+                                        {transport === 'streamable_http' && <Check className="w-3.5 h-3.5" />}
                                     </div>
                                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
                                         {t.httpDesc}
@@ -949,11 +972,11 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
                                             <div className="flex items-center gap-2">
                                                 <span className="font-semibold text-sm text-gray-900 dark:text-gray-200 truncate">{item.key}</span>
                                                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide ${
-                                                    item.type === 'http' 
+                                                    isStreamTransport(item.type)
                                                     ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' 
                                                     : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                                                 }`}>
-                                                    {item.type === 'http' ? 'STREAM' : 'SSE'}
+                                                    {isStreamTransport(item.type) ? 'STREAM' : 'SSE'}
                                                 </span>
                                             </div>
                                             <span className="text-xs text-gray-500 dark:text-gray-400 truncate font-mono">{item.url}</span>

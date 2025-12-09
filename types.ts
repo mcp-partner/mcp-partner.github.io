@@ -63,7 +63,7 @@ export type Theme = 'light' | 'dark';
 
 // --- Configuration Types ---
 
-export type TransportType = 'sse' | 'http';
+export type TransportType = 'sse' | 'streamable_http';
 
 export interface McpServerConfig {
   url: string;

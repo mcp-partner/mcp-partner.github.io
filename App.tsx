@@ -148,7 +148,7 @@ const App: React.FC = () => {
     // 1. Check if we need to swap the client implementation
     if (activeTransport.current !== transport) {
         mcpClient.current.disconnect();
-        if (transport === 'http') {
+        if (transport === 'streamable_http') {
             mcpClient.current = new StreamableHttpMcpClient();
         } else {
             mcpClient.current = new SseMcpClient();
@@ -163,7 +163,7 @@ const App: React.FC = () => {
     addLog({ 
         type: 'info', 
         direction: 'local', 
-        summary: `Connecting to ${url} via ${transport === 'http' ? 'Streamable HTTP' : 'SSE'}...`,
+        summary: `Connecting to ${url} via ${transport === 'streamable_http' ? 'Streamable HTTP' : 'SSE'}...`,
         details: { 
           ...(proxyConfig.enabled ? { proxy: proxyConfig.prefix } : {}),
           ...(Object.keys(headers).length > 0 ? { headers } : {})
