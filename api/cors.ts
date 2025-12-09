@@ -24,6 +24,8 @@ export default async function handler(req: Request) {
     return new Response('Missing "url" query parameter', { status: 400, headers: corsHeaders });
   }
 
+
+
   try {
     // Validate URL
     new URL(targetUrl);
@@ -55,6 +57,15 @@ export default async function handler(req: Request) {
     // Create a new response with the target's body and status
     const responseHeaders = new Headers(response.headers);
     
+    // CRITICAL FIX: Delete headers that cause issues with streaming and compression.
+    // The Edge Runtime `fetch` automatically decompresses the response body. 
+    // If we forward `content-encoding: gzip`, the browser tries to decompress it AGAIN,
+    // which causes the request to hang or fail because the body is already plain text.
+    responseHeaders.delete('content-encoding');
+    responseHeaders.delete('content-length');
+    responseHeaders.delete('transfer-encoding');
+    responseHeaders.delete('connection');
+
     // Overwrite CORS headers to allow access from our app
     Object.entries(corsHeaders).forEach(([key, value]) => {
         responseHeaders.set(key, value);
