@@ -2,6 +2,7 @@ import { JsonRpcMessage } from '../types';
 
 export type MessageHandler = (message: JsonRpcMessage) => void;
 export type ErrorHandler = (error: string) => void;
+export type Unsubscribe = () => void;
 
 export interface ProxyConfig {
   enabled: boolean;
@@ -38,11 +39,13 @@ export interface IMcpClient {
 
   /**
    * Registers a callback for incoming messages.
+   * Returns an unsubscribe function.
    */
-  onMessage(handler: MessageHandler): void;
+  onMessage(handler: MessageHandler): Unsubscribe;
 
   /**
    * Registers a callback for errors.
+   * Returns an unsubscribe function.
    */
-  onError(handler: ErrorHandler): void;
+  onError(handler: ErrorHandler): Unsubscribe;
 }

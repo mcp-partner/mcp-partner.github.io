@@ -1,4 +1,4 @@
-import { IMcpClient, ProxyConfig, MessageHandler, ErrorHandler } from './mcpClient';
+import { IMcpClient, ProxyConfig, MessageHandler, ErrorHandler, Unsubscribe } from './mcpClient';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
@@ -108,6 +108,8 @@ export class StreamableHttpMcpClient implements IMcpClient {
             this.client = null;
         }
         this.transport = null;
+        this.messageHandlers = [];
+        this.errorHandlers = [];
     }
 
     async sendRequest(method: string, params?: any): Promise<any> {
@@ -138,12 +140,18 @@ export class StreamableHttpMcpClient implements IMcpClient {
         });
     }
 
-    onMessage(handler: MessageHandler): void {
+    onMessage(handler: MessageHandler): Unsubscribe {
         this.messageHandlers.push(handler);
+        return () => {
+            this.messageHandlers = this.messageHandlers.filter(h => h !== handler);
+        };
     }
 
-    onError(handler: ErrorHandler): void {
+    onError(handler: ErrorHandler): Unsubscribe {
         this.errorHandlers.push(handler);
+        return () => {
+            this.errorHandlers = this.errorHandlers.filter(h => h !== handler);
+        };
     }
 
     // Helper to broadcast to our logging system

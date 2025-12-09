@@ -98,9 +98,13 @@ const App: React.FC = () => {
 
   // Set up listeners for the initial client
   useEffect(() => {
-    mcpClient.current.onMessage(messageHandler);
-    mcpClient.current.onError(errorHandler);
-    return () => { mcpClient.current.disconnect(); };
+    const unsubMsg = mcpClient.current.onMessage(messageHandler);
+    const unsubErr = mcpClient.current.onError(errorHandler);
+    return () => { 
+        unsubMsg();
+        unsubErr();
+        mcpClient.current.disconnect(); 
+    };
   }, [messageHandler, errorHandler]);
 
 
@@ -114,6 +118,14 @@ const App: React.FC = () => {
             mcpClient.current = new SseMcpClient();
         }
         // Re-attach listeners to the new instance
+        // IMPORTANT: We must NOT manually attach here if useEffect handles it, 
+        // but since we are swapping the INSTANCE inside a Ref, the useEffect might not re-run if it only depends on messageHandler/errorHandler.
+        // However, ref changes do not trigger re-renders.
+        // The safest way is to force a re-render or handle the subscription manually here.
+        // Actually, the useEffect above only runs on mount (or if handler changes). It closes over `mcpClient.current`.
+        // If `mcpClient.current` changes, the old handlers are still attached to the OLD instance (which is disconnected).
+        // We need to attach handlers to the NEW instance.
+        
         mcpClient.current.onMessage(messageHandler);
         mcpClient.current.onError(errorHandler);
         activeTransport.current = transport;

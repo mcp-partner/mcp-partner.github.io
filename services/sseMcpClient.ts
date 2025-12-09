@@ -1,5 +1,5 @@
 import { JsonRpcMessage, JsonRpcResponse, JsonRpcRequest, JsonRpcNotification } from '../types';
-import { IMcpClient, ProxyConfig, MessageHandler, ErrorHandler } from './mcpClient';
+import { IMcpClient, ProxyConfig, MessageHandler, ErrorHandler, Unsubscribe } from './mcpClient';
 
 export class SseMcpClient implements IMcpClient {
   private abortController: AbortController | null = null;
@@ -169,14 +169,22 @@ export class SseMcpClient implements IMcpClient {
     }
     this.postUrl = null;
     this.pendingRequests.clear();
+    this.messageHandlers = [];
+    this.errorHandlers = [];
   }
 
-  onMessage(handler: MessageHandler) {
+  onMessage(handler: MessageHandler): Unsubscribe {
     this.messageHandlers.push(handler);
+    return () => {
+        this.messageHandlers = this.messageHandlers.filter(h => h !== handler);
+    };
   }
 
-  onError(handler: ErrorHandler) {
+  onError(handler: ErrorHandler): Unsubscribe {
     this.errorHandlers.push(handler);
+    return () => {
+        this.errorHandlers = this.errorHandlers.filter(h => h !== handler);
+    };
   }
 
   private emitError(msg: string) {
@@ -225,15 +233,6 @@ export class SseMcpClient implements IMcpClient {
     });
 
     try {
-      try {
-        await fetch(this.postUrl, {
-           method: 'OPTIONS',
-           headers: this.headers
-        });
-      } catch (optErr) {
-        console.warn("Manual OPTIONS check failed", optErr);
-      }
-
       const res = await fetch(this.postUrl, {
         method: 'POST',
         headers: {
@@ -270,15 +269,6 @@ export class SseMcpClient implements IMcpClient {
     this.messageHandlers.forEach(h => h(notification));
 
     try {
-      try {
-        await fetch(this.postUrl, {
-           method: 'OPTIONS',
-           headers: this.headers
-        });
-      } catch (optErr) {
-        console.warn("Manual OPTIONS check failed", optErr);
-      }
-
       const res = await fetch(this.postUrl, {
         method: 'POST',
         headers: {
