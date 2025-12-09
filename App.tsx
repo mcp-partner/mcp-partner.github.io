@@ -132,6 +132,16 @@ const App: React.FC = () => {
     localStorage.setItem('mcp_language', lang);
   }, [lang]);
 
+  // Persist Server Registry
+  useEffect(() => {
+    localStorage.setItem('mcp_servers_registry', JSON.stringify(serverRegistry));
+  }, [serverRegistry]);
+
+  // Persist Extension Registry
+  useEffect(() => {
+    localStorage.setItem('mcp_extensions_registry', JSON.stringify(extensionRegistry));
+  }, [extensionRegistry]);
+
   const toggleTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
