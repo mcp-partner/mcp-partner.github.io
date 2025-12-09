@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { X, ExternalLink, Github, Book } from 'lucide-react';
 import { translations } from '../utils/i18n';
@@ -35,7 +34,8 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose, lang }) => {
 
                     <div className="relative z-10 flex flex-col items-center">
                         <div className="w-20 h-20 bg-white rounded-2xl shadow-lg p-2 mb-4 flex items-center justify-center transform transition-transform hover:scale-105 duration-300">
-                             <img src="/icon.svg" alt="MCP Partner" className="w-full h-full" />
+                             {/* Use relative path for icon.svg to support GH Pages subpath deployment */}
+                             <img src="icon.svg" alt="MCP Partner" className="w-full h-full" />
                         </div>
                         <h2 className="text-2xl font-black text-white tracking-tight">MCP Partner</h2>
                         <div className="mt-1 flex items-center gap-1.5 px-2.5 py-0.5 bg-blue-800/50 rounded-full border border-blue-400/30">
@@ -51,7 +51,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose, lang }) => {
                     </p>
 
                     <a 
-                        href="/docs.html" 
+                        href="docs.html" 
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-semibold rounded-xl transition-all group"

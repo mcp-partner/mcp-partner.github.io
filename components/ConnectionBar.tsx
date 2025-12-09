@@ -21,7 +21,15 @@ interface HeaderItem {
     value: string;
 }
 
-const DEFAULT_PROXY_URL = '/cors?url=';
+// Detect if we are likely on Vercel or Localhost where /cors endpoint exists.
+// On GitHub Pages or other static hosts, /cors API will not exist, so we default to a public proxy.
+const isVercelOrLocal = typeof window !== 'undefined' && (
+    window.location.hostname.includes('vercel.app') || 
+    window.location.hostname.includes('localhost') ||
+    window.location.hostname.includes('127.0.0.1')
+);
+
+const DEFAULT_PROXY_URL = isVercelOrLocal ? '/cors?url=' : 'https://corsproxy.io/?url=';
 
 // Helper for normalization
 const normalizeTransport = (t: string | undefined | null): TransportType => {

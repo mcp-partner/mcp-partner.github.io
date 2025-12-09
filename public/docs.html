@@ -1,12 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MCP Partner 文档</title>
-    <meta name="description" content="MCP Partner 文档，在线 Model Context Protocol 客户端。">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <meta name="description" content="MCP Partner 文档，在线 Model Context Protocol 客户端，支持 SSE 和 Streamable HTTP。">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -49,7 +48,7 @@
     <header class="fixed w-full bg-white/80 backdrop-blur-md border-b border-slate-200 z-50">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <img src="/icon.svg" alt="Logo" class="w-8 h-8">
+                <img src="icon.svg" alt="Logo" class="w-8 h-8">
                 <span class="font-bold text-lg text-slate-900 tracking-tight">MCP Partner <span class="text-slate-400 font-normal ml-2 text-sm">Docs</span></span>
             </div>
             <div class="flex items-center gap-4">
@@ -59,7 +58,7 @@
                 </div>
                 <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
                 <a href="https://github.com/Ericwyn/mcp-partner" target="_blank" class="hidden sm:block text-slate-500 hover:text-slate-900 transition-colors">GitHub</a>
-                <a href="/" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                <a href="./" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors">
                     <span id="btn-open-zh">打开应用</span>
                     <span id="btn-open-en" style="display:none">Open App</span>
                 </a>
@@ -121,6 +120,8 @@
                 <p class="text-lg text-slate-600 leading-relaxed">
                     MCP Partner 是一个用于调试和交互 <a href="https://modelcontextprotocol.io/" class="text-blue-600 underline" target="_blank">Model Context Protocol (MCP)</a> 的客户端工具。 
                     你可以把它看作是 "MCP 界的 Postman"。它允许开发人员连接到 MCP 服务器，发现可用工具，并通过直观的 UI 执行这些工具。
+                    <br><br>
+                    <strong>新功能：</strong> 现已全面支持 <strong>Streamable HTTP</strong> 协议，为您提供更稳定、基于标准 HTTP流 的交互体验。
                 </p>
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
                     <p class="text-blue-800 font-medium m-0">
@@ -140,17 +141,17 @@
                         </div>
                         <p>
                             在顶部地址栏输入您的 MCP 服务器地址。支持标准的 SSE 端点或 Streamable HTTP 端点。
-                            <br>示例：<code>http://localhost:3000/sse</code>
+                            <br>示例：<code>http://localhost:3000/sse</code> (SSE) 或 <code>http://localhost:3000/mcp</code> (HTTP)
                         </p>
                     </div>
 
                     <div>
                         <div class="flex items-center gap-3 mb-3">
                             <span class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-700 rounded-full font-bold">2</span>
-                            <h3 class="text-xl font-bold text-slate-900 m-0">选择工具</h3>
+                            <h3 class="text-xl font-bold text-slate-900 m-0">选择传输协议</h3>
                         </div>
                         <p>
-                            连接成功后，侧边栏会自动列出从服务器发现的所有可用工具。点击任意工具查看其定义。
+                            在地址栏左侧选择 <strong>SSE</strong> 或 <strong>Streamable HTTP</strong>。Streamable HTTP 提供了更现代的流式传输体验。
                         </p>
                     </div>
 
@@ -174,8 +175,8 @@
                         <p class="text-sm text-slate-600 m-0">同时支持 SSE (Server-Sent Events) 和 Streamable HTTP 两种主流传输方式。</p>
                     </div>
                     <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
-                        <h4 class="font-bold text-slate-900 mb-2">动态表单</h4>
-                        <p class="text-sm text-slate-600 m-0">基于工具的 JSON Schema 自动生成 UI 表单，支持校验、布尔值开关和参数描述。</p>
+                        <h4 class="font-bold text-slate-900 mb-2">GitHub Pages 支持</h4>
+                        <p class="text-sm text-slate-600 m-0">纯静态架构，可完美部署于 GitHub Pages 等静态托管服务。</p>
                     </div>
                     <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
                         <h4 class="font-bold text-slate-900 mb-2">请求日志</h4>
@@ -197,7 +198,7 @@
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-slate-900">Streamable HTTP</h3>
-                        <p>使用 MCP SDK 基于 HTTP POST 流的传输方式。适用于对标准 SSE 有限制的环境，或特定的服务器实现。</p>
+                        <p>使用 MCP SDK 基于 HTTP POST 流的传输方式。适用于对标准 SSE 有限制的环境，或特定的服务器实现。该模式下，客户端通过 HTTP 流实时接收响应。</p>
                     </div>
                 </div>
             </section>
@@ -214,7 +215,7 @@
                 <h3 class="text-xl font-bold mb-3">解决方案</h3>
                 <ol class="list-decimal pl-5 space-y-2 text-slate-600">
                     <li>
-                        <strong>使用内置代理:</strong> 点击连接栏中的 🛡️ 图标并启用 "启用 CORS 代理"。这将通过一个 CORS 友好的转发器路由请求。
+                        <strong>使用代理:</strong> 点击连接栏中的 🛡️ 图标并启用 "启用 CORS 代理"。如果您在 Vercel 部署，会自动使用内置代理；如果在 GitHub Pages，建议使用公共代理（默认配置）。
                     </li>
                     <li>
                         <strong>配置服务器:</strong> 确保您的 MCP 服务器在 SSE 和 POST 端点上都设置了 <code>Access-Control-Allow-Origin: *</code> (或指定域名)。
@@ -239,6 +240,8 @@
                 <p class="text-lg text-slate-600 leading-relaxed">
                     MCP Partner is a client-side debugging and interaction tool for the <a href="https://modelcontextprotocol.io/" class="text-blue-600 underline" target="_blank">Model Context Protocol (MCP)</a>. 
                     Think of it as "Postman for MCP". It allows developers to connect to MCP servers, discover available tools, and execute them with an intuitive UI.
+                    <br><br>
+                    <strong>New:</strong> Now with full support for <strong>Streamable HTTP</strong>, providing a robust, standard HTTP stream-based interaction.
                 </p>
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
                     <p class="text-blue-800 font-medium m-0">
@@ -265,10 +268,10 @@
                     <div>
                         <div class="flex items-center gap-3 mb-3">
                             <span class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-700 rounded-full font-bold">2</span>
-                            <h3 class="text-xl font-bold text-slate-900 m-0">Select a Tool</h3>
+                            <h3 class="text-xl font-bold text-slate-900 m-0">Select Transport</h3>
                         </div>
                         <p>
-                            Once connected, the sidebar will populate with available tools discovered from the server. Click on any tool to view its definition.
+                            Choose between <strong>SSE</strong> and <strong>Streamable HTTP</strong>. Streamable HTTP provides a modern streaming experience over standard HTTP POST.
                         </p>
                     </div>
 
@@ -292,8 +295,8 @@
                         <p class="text-sm text-slate-600 m-0">Supports both standard SSE (Server-Sent Events) and Streamable HTTP transports.</p>
                     </div>
                     <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
-                        <h4 class="font-bold text-slate-900 mb-2">Dynamic Forms</h4>
-                        <p class="text-sm text-slate-600 m-0">Automatically generates UI forms based on the tool's JSON Schema, supporting validation, booleans, and descriptions.</p>
+                        <h4 class="font-bold text-slate-900 mb-2">GitHub Pages Ready</h4>
+                        <p class="text-sm text-slate-600 m-0">Pure static architecture, ready to deploy on GitHub Pages or any static host.</p>
                     </div>
                     <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
                         <h4 class="font-bold text-slate-900 mb-2">Request History & Logs</h4>
@@ -332,7 +335,7 @@
                 <h3 class="text-xl font-bold mb-3">Solutions</h3>
                 <ol class="list-decimal pl-5 space-y-2 text-slate-600">
                     <li>
-                        <strong>Use the built-in Proxy:</strong> Click the 🛡️ icon in the connection bar and enable "Use Proxy". This routes requests through a CORS-friendly forwarder.
+                        <strong>Use Proxy:</strong> Click the 🛡️ icon in the connection bar. If deploying on Vercel, it uses the built-in proxy. On GitHub Pages, it defaults to a public proxy.
                     </li>
                     <li>
                         <strong>Configure your Server:</strong> Ensure your MCP server implementation sets <code>Access-Control-Allow-Origin: *</code> (or your specific domain) for both SSE and POST endpoints.
