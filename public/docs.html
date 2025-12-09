@@ -1,11 +1,11 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Documentation - MCP Partner</title>
-    <meta name="description" content="Documentation for MCP Partner, the online Model Context Protocol client.">
+    <title>MCP Partner 文档</title>
+    <meta name="description" content="MCP Partner 文档，在线 Model Context Protocol 客户端。">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,7 +17,31 @@
         .prose pre { background-color: #1e293b; color: #e2e8f0; padding: 1rem; rounded-lg; overflow-x: auto; margin-bottom: 1rem; }
         .nav-link { color: #64748b; font-weight: 500; transition: color 0.2s; }
         .nav-link:hover { color: #2563eb; }
+        .active-lang { color: #2563eb; font-weight: 700; background-color: #eff6ff; }
     </style>
+    <script>
+        function setLang(lang) {
+            if(lang === 'en') {
+                document.getElementById('content-zh').style.display = 'none';
+                document.getElementById('content-en').style.display = 'block';
+                document.getElementById('sidebar-zh').style.display = 'none';
+                document.getElementById('sidebar-en').style.display = 'block';
+                
+                document.getElementById('btn-zh').classList.remove('active-lang');
+                document.getElementById('btn-en').classList.add('active-lang');
+                document.documentElement.lang = 'en';
+            } else {
+                document.getElementById('content-en').style.display = 'none';
+                document.getElementById('content-zh').style.display = 'block';
+                document.getElementById('sidebar-en').style.display = 'none';
+                document.getElementById('sidebar-zh').style.display = 'block';
+
+                document.getElementById('btn-en').classList.remove('active-lang');
+                document.getElementById('btn-zh').classList.add('active-lang');
+                document.documentElement.lang = 'zh';
+            }
+        }
+    </script>
 </head>
 <body class="bg-white text-slate-800 antialiased">
 
@@ -29,16 +53,46 @@
                 <span class="font-bold text-lg text-slate-900 tracking-tight">MCP Partner <span class="text-slate-400 font-normal ml-2 text-sm">Docs</span></span>
             </div>
             <div class="flex items-center gap-4">
+                <div class="flex items-center bg-slate-100 rounded-lg p-1 text-xs font-medium">
+                    <button id="btn-zh" onclick="setLang('zh')" class="px-3 py-1.5 rounded-md active-lang transition-colors">中文</button>
+                    <button id="btn-en" onclick="setLang('en')" class="px-3 py-1.5 rounded-md transition-colors">English</button>
+                </div>
+                <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
                 <a href="https://github.com/Ericwyn/mcp-partner" target="_blank" class="hidden sm:block text-slate-500 hover:text-slate-900 transition-colors">GitHub</a>
-                <a href="/" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors">Open App</a>
+                <a href="/" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                    <span id="btn-open-zh">打开应用</span>
+                    <span id="btn-open-en" style="display:none">Open App</span>
+                </a>
             </div>
         </div>
     </header>
 
     <main class="pt-24 pb-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-12">
         
-        <!-- Sidebar Navigation -->
-        <aside class="w-full md:w-64 shrink-0 hidden md:block relative">
+        <!-- Sidebar Navigation (Chinese) -->
+        <aside id="sidebar-zh" class="w-full md:w-64 shrink-0 hidden md:block relative">
+            <div class="fixed top-24 w-64 space-y-8 h-[calc(100vh-6rem)] overflow-y-auto pr-4">
+                <div>
+                    <h5 class="font-bold text-slate-900 mb-4">入门指南</h5>
+                    <ul class="space-y-3 border-l border-slate-200 ml-1">
+                        <li><a href="#introduction" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">简介</a></li>
+                        <li><a href="#quick-start" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">快速开始</a></li>
+                        <li><a href="#features" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">功能特性</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="font-bold text-slate-900 mb-4">高级配置</h5>
+                    <ul class="space-y-3 border-l border-slate-200 ml-1">
+                        <li><a href="#transports" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">传输协议 (SSE/HTTP)</a></li>
+                        <li><a href="#cors-proxy" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">CORS 跨域与代理</a></li>
+                        <li><a href="#settings" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">配置与持久化</a></li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Sidebar Navigation (English) -->
+        <aside id="sidebar-en" class="w-full md:w-64 shrink-0 hidden relative" style="display: none;">
             <div class="fixed top-24 w-64 space-y-8 h-[calc(100vh-6rem)] overflow-y-auto pr-4">
                 <div>
                     <h5 class="font-bold text-slate-900 mb-4">Getting Started</h5>
@@ -51,16 +105,134 @@
                 <div>
                     <h5 class="font-bold text-slate-900 mb-4">Configuration</h5>
                     <ul class="space-y-3 border-l border-slate-200 ml-1">
-                        <li><a href="#cors-proxy" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">CORS & Proxy</a></li>
                         <li><a href="#transports" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Transports (SSE/HTTP)</a></li>
+                        <li><a href="#cors-proxy" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">CORS & Proxy</a></li>
                         <li><a href="#settings" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Settings & Persistence</a></li>
                     </ul>
                 </div>
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <div class="flex-1 prose max-w-none">
+        <!-- Main Content (Chinese) -->
+        <div id="content-zh" class="flex-1 prose max-w-none">
+            
+            <section id="introduction" class="mb-16">
+                <h1 class="text-4xl font-extrabold text-slate-900 mb-6">简介</h1>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    MCP Partner 是一个用于调试和交互 <a href="https://modelcontextprotocol.io/" class="text-blue-600 underline" target="_blank">Model Context Protocol (MCP)</a> 的客户端工具。 
+                    你可以把它看作是 "MCP 界的 Postman"。它允许开发人员连接到 MCP 服务器，发现可用工具，并通过直观的 UI 执行这些工具。
+                </p>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                    <p class="text-blue-800 font-medium m-0">
+                        ⚡️ 无需安装。MCP Partner 作为渐进式 Web 应用 (PWA) 可以在浏览器中直接运行，并支持安装到本地桌面。
+                    </p>
+                </div>
+            </section>
+
+            <section id="quick-start" class="mb-16 pt-8 border-t border-slate-100">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6">快速开始</h2>
+                
+                <div class="space-y-8">
+                    <div>
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-700 rounded-full font-bold">1</span>
+                            <h3 class="text-xl font-bold text-slate-900 m-0">连接服务器</h3>
+                        </div>
+                        <p>
+                            在顶部地址栏输入您的 MCP 服务器地址。支持标准的 SSE 端点或 Streamable HTTP 端点。
+                            <br>示例：<code>http://localhost:3000/sse</code>
+                        </p>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-700 rounded-full font-bold">2</span>
+                            <h3 class="text-xl font-bold text-slate-900 m-0">选择工具</h3>
+                        </div>
+                        <p>
+                            连接成功后，侧边栏会自动列出从服务器发现的所有可用工具。点击任意工具查看其定义。
+                        </p>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-700 rounded-full font-bold">3</span>
+                            <h3 class="text-xl font-bold text-slate-900 m-0">执行与调试</h3>
+                        </div>
+                        <p>
+                            使用自动生成的表单填写参数，或切换到 JSON 视图进行原始编辑。点击 <strong>发送请求</strong> 即可运行工具并实时查看 JSON-RPC 响应。
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="features" class="mb-16 pt-8 border-t border-slate-100">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6">核心功能</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
+                        <h4 class="font-bold text-slate-900 mb-2">多协议支持</h4>
+                        <p class="text-sm text-slate-600 m-0">同时支持 SSE (Server-Sent Events) 和 Streamable HTTP 两种主流传输方式。</p>
+                    </div>
+                    <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
+                        <h4 class="font-bold text-slate-900 mb-2">动态表单</h4>
+                        <p class="text-sm text-slate-600 m-0">基于工具的 JSON Schema 自动生成 UI 表单，支持校验、布尔值开关和参数描述。</p>
+                    </div>
+                    <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
+                        <h4 class="font-bold text-slate-900 mb-2">请求日志</h4>
+                        <p class="text-sm text-slate-600 m-0">底部控制台完整展示 JSON-RPC 流量，包含 Request ID、Method 以及详细的错误堆栈。</p>
+                    </div>
+                    <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
+                        <h4 class="font-bold text-slate-900 mb-2">配置持久化</h4>
+                        <p class="text-sm text-slate-600 m-0">自动保存服务器列表、工具参数和执行结果。支持一键导出/导入 JSON 配置。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="transports" class="mb-16 pt-8 border-t border-slate-100">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6">传输协议支持</h2>
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">SSE (Server-Sent Events)</h3>
+                        <p>默认模式。客户端通过 <code>GET</code> 请求建立长连接接收事件，并从 <code>endpoint</code> 事件中发现用于发送请求的 <code>POST</code> 地址。</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Streamable HTTP</h3>
+                        <p>使用 MCP SDK 基于 HTTP POST 流的传输方式。适用于对标准 SSE 有限制的环境，或特定的服务器实现。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="cors-proxy" class="mb-16 pt-8 border-t border-slate-100">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6">CORS 跨域与代理</h2>
+                <p>
+                    浏览器强制执行严格的 CORS (跨域资源共享) 策略。如果您的本地 MCP 服务器没有发送正确的 <code>Access-Control-Allow-Origin</code> 头，浏览器将阻止连接。
+                </p>
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6">
+                    <p class="text-amber-800 font-bold m-0 text-sm">典型症状：连接立即失败，并在日志中显示 "Network Error" 或 0 状态码。</p>
+                </div>
+
+                <h3 class="text-xl font-bold mb-3">解决方案</h3>
+                <ol class="list-decimal pl-5 space-y-2 text-slate-600">
+                    <li>
+                        <strong>使用内置代理:</strong> 点击连接栏中的 🛡️ 图标并启用 "启用 CORS 代理"。这将通过一个 CORS 友好的转发器路由请求。
+                    </li>
+                    <li>
+                        <strong>配置服务器:</strong> 确保您的 MCP 服务器在 SSE 和 POST 端点上都设置了 <code>Access-Control-Allow-Origin: *</code> (或指定域名)。
+                    </li>
+                    <li>
+                        <strong>使用 Pancors:</strong> 对于频繁的本地开发，推荐运行本地代理工具如 <a href="https://github.com/Ericwyn/pancors" target="_blank" class="text-blue-600 underline">pancors</a>。
+                    </li>
+                </ol>
+            </section>
+
+            <footer class="mt-20 pt-8 border-t border-slate-200 text-center text-slate-500 text-sm">
+                <p>&copy; 2024 MCP Partner. Open Source.</p>
+            </footer>
+
+        </div>
+
+        <!-- Main Content (English) -->
+        <div id="content-en" class="flex-1 prose max-w-none" style="display: none;">
             
             <section id="introduction" class="mb-16">
                 <h1 class="text-4xl font-extrabold text-slate-900 mb-6">Introduction</h1>
@@ -116,6 +288,10 @@
                 <h2 class="text-3xl font-bold text-slate-900 mb-6">Key Features</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
+                        <h4 class="font-bold text-slate-900 mb-2">Multi-Protocol</h4>
+                        <p class="text-sm text-slate-600 m-0">Supports both standard SSE (Server-Sent Events) and Streamable HTTP transports.</p>
+                    </div>
+                    <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
                         <h4 class="font-bold text-slate-900 mb-2">Dynamic Forms</h4>
                         <p class="text-sm text-slate-600 m-0">Automatically generates UI forms based on the tool's JSON Schema, supporting validation, booleans, and descriptions.</p>
                     </div>
@@ -127,9 +303,19 @@
                         <h4 class="font-bold text-slate-900 mb-2">State Persistence</h4>
                         <p class="text-sm text-slate-600 m-0">Your server list, tool parameters, and execution results are saved locally, so you can pick up where you left off.</p>
                     </div>
-                    <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
-                        <h4 class="font-bold text-slate-900 mb-2">Config Import/Export</h4>
-                        <p class="text-sm text-slate-600 m-0">Share your server configurations with teammates by exporting a simple JSON file.</p>
+                </div>
+            </section>
+
+            <section id="transports" class="mb-16 pt-8 border-t border-slate-100">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6">Supported Transports</h2>
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">SSE (Server-Sent Events)</h3>
+                        <p>The default mode. The client connects via <code>GET</code> to receive events and discovers a <code>POST</code> endpoint for sending requests.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Streamable HTTP</h3>
+                        <p>Uses the newer MCP SDK transport method over HTTP streams. Useful for environments where standard SSE might be restrictive or for specific server implementations.</p>
                     </div>
                 </div>
             </section>
@@ -157,26 +343,22 @@
                 </ol>
             </section>
 
-             <section id="transports" class="mb-16 pt-8 border-t border-slate-100">
-                <h2 class="text-3xl font-bold text-slate-900 mb-6">Supported Transports</h2>
-                <div class="space-y-6">
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-900">SSE (Server-Sent Events)</h3>
-                        <p>The default mode. The client connects via <code>GET</code> to receive events and discovers a <code>POST</code> endpoint for sending requests.</p>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-900">Streamable HTTP</h3>
-                        <p>Uses the newer MCP SDK transport method over HTTP streams. Useful for environments where standard SSE might be restrictive or for specific server implementations.</p>
-                    </div>
-                </div>
-            </section>
-
             <footer class="mt-20 pt-8 border-t border-slate-200 text-center text-slate-500 text-sm">
                 <p>&copy; 2024 MCP Partner. Open Source.</p>
             </footer>
 
         </div>
     </main>
-
+    <script>
+        // Set "Open App" button text based on lang
+        document.getElementById('btn-zh').addEventListener('click', function() {
+            document.getElementById('btn-open-zh').style.display = 'inline';
+            document.getElementById('btn-open-en').style.display = 'none';
+        });
+        document.getElementById('btn-en').addEventListener('click', function() {
+            document.getElementById('btn-open-zh').style.display = 'none';
+            document.getElementById('btn-open-en').style.display = 'inline';
+        });
+    </script>
 </body>
 </html>

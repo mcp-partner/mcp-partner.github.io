@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'MCP Partner',
         short_name: 'MCP Partner',
-        description: 'A Postman-like interface for testing and interacting with Model Context Protocol (MCP) Servers via SSE.',
+        description: 'A Postman-like interface for testing and interacting with Model Context Protocol (MCP) Servers via SSE or Streamable HTTP.',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',

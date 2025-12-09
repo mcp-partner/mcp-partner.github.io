@@ -1,5 +1,5 @@
 {
   "name": "MCP Partner",
-  "description": "A Postman-like interface for testing and interacting with Model Context Protocol (MCP) Servers via SSE.",
+  "description": "A Postman-like interface for testing and interacting with Model Context Protocol (MCP) Servers via SSE or Streamable HTTP.",
   "requestFramePermissions": []
 }

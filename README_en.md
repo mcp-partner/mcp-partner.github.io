@@ -3,17 +3,17 @@
 
 English | [中文](README.md)
 
-A Postman-like interface for testing and interacting with Model Context Protocol (MCP) Servers via SSE.
+A Postman-like interface for testing and interacting with Model Context Protocol (MCP) Servers via SSE or Streamable HTTP.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FEricwyn%2Fmcp-partner)
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-0.0.5-green.svg)
+![Version](https://img.shields.io/badge/version-0.3.0-green.svg)
 
 ## Features
 
 - **Instant Access**: Pure web application. No installation required, works directly in your browser.
-- **SSE Connection**: Connect to any MCP compliant Server-Sent Events endpoint.
+- **Protocol Support**: Connect via standard SSE (Server-Sent Events) or Streamable HTTP.
 - **Tool Discovery**: Automatically lists available tools from the connected server.
 - **Interactive Testing**:
   - **Form Mode**: User-friendly form generation based on the tool's input schema.
@@ -51,12 +51,14 @@ To solve this, MCP Partner supports 3 proxy methods (configurable via the Shield
 ## Usage
 
 1. Open the application.
-2. Enter your MCP Server SSE URL (e.g., `http://localhost:3000/sse`).
-3. (Optional) Enable Proxy settings if you encounter connection errors.
-4. Click Connect.
-5. Select a tool from the sidebar.
-6. Enter arguments and click Send.
+2. Enter your MCP Server URL.
+3. Select Transport Type (SSE or Streamable HTTP).
+4. (Optional) Enable Proxy settings if you encounter connection errors.
+5. Click Connect.
+6. Select a tool from the sidebar.
+7. Enter arguments and click Send.
 
 ## Acknowledgments
 
-Thanks to Gemini 3 and Google AI Studio
+- Thanks to Gemini 3 and Google AI Studio
+- Thanks Vercel

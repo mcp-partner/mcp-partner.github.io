@@ -96,7 +96,7 @@ export const translations = {
     about: 'About',
     version: 'Version',
     readDocs: 'Read Documentation',
-    aboutDesc: 'A Postman-like interface for testing and interacting with Model Context Protocol (MCP) Servers.',
+    aboutDesc: 'A Postman-like interface for testing and interacting with Model Context Protocol (MCP) Servers via SSE or Streamable HTTP.',
     createdBy: 'Created by',
     visitRepo: 'Visit Repository'
   },
@@ -193,7 +193,7 @@ export const translations = {
     about: '关于',
     version: '版本',
     readDocs: '阅读在线文档',
-    aboutDesc: '一个类似 Postman 的工具，用于通过 SSE 测试和交互 Model Context Protocol (MCP) 服务器。',
+    aboutDesc: '一个类似 Postman 的工具，用于通过 SSE 或 Streamable HTTP 测试和交互 Model Context Protocol (MCP) 服务器。',
     createdBy: '作者',
     visitRepo: '访问代码仓库'
   }

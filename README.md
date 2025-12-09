@@ -2,7 +2,7 @@
 
 [English](README_en.md) | 中文
 
-一个类似 Postman 的工具，用于通过 SSE (Server-Sent Events) 测试和交互 Model Context Protocol (MCP) 服务器。
+一个类似 Postman 的工具，用于通过 SSE (Server-Sent Events) 或 Streamable HTTP 测试和交互 Model Context Protocol (MCP) 服务器。
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FEricwyn%2Fmcp-partner)
 
@@ -11,12 +11,12 @@
 [https://mcp-partner.vercel.app/](https://mcp-partner.vercel.app/)
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-0.0.5-green.svg)
+![Version](https://img.shields.io/badge/version-0.3.0-green.svg)
 
 ## 功能特性
 
 - **即开即用**: 纯静态网页应用，无需本地安装、无需启动后端服务，直接在线访问即可连接您的 MCP 服务器。
-- **SSE 连接管理**: 连接到任何符合 MCP 标准的 SSE 端点。
+- **多协议支持**: 支持标准的 SSE (Server-Sent Events) 和 Streamable HTTP 连接方式。
 - **工具发现**: 自动获取并展示已连接服务器的可用工具列表。
 - **交互式测试**:
   - **表单模式**: 根据工具的 Input Schema 自动生成友好的输入表单。
@@ -53,13 +53,14 @@
 ## 使用说明
 
 1. 打开应用。
-2. 输入 MCP 服务器的 SSE 地址 (例如 `http://localhost:3000/sse`)。
-3. (可选) 如果遇到连接错误，请尝试开启代理设置。
-4. 点击“连接”。
-5. 在左侧侧边栏选择一个工具。
-6. 输入参数并点击“发送请求”。
+2. 输入 MCP 服务器地址。
+3. 选择传输协议 (SSE 或 Streamable HTTP)。
+4. (可选) 如果遇到连接错误，请尝试开启代理设置。
+5. 点击“连接”。
+6. 在左侧侧边栏选择一个工具。
+7. 输入参数并点击“发送请求”。
 
 ## 致谢
 
-感谢 Gemini 3 / Google AI Studio
-感谢 Vercel
+- 感谢 Gemini 3 / Google AI Studio
+- 感谢 Vercel
