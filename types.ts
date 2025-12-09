@@ -61,9 +61,11 @@ export type Theme = 'light' | 'dark';
 
 // --- Configuration Types ---
 
+export type McpServerType = 'sse' | 'streamable_http';
+
 export interface McpServerConfig {
   url: string;
-  type: 'sse'; 
+  type: McpServerType; 
   headers: Record<string, string>;
 }
 

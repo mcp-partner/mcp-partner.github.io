@@ -1,11 +1,12 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { ConnectionStatus, Language, Theme, McpPartnerConfig, McpServerConfig, McpExtensionConfig } from '../types';
-import { Plug, Unplug, Loader2, Moon, Sun, Settings, Globe, List, Plus, Trash2, History, Save, MoreVertical, Monitor, Languages, Shield, ShieldCheck, ArrowRightLeft, Copy, Check, X, FileJson, Pencil, HardDrive } from 'lucide-react';
+import { ConnectionStatus, Language, Theme, McpPartnerConfig, McpServerConfig, McpExtensionConfig, McpServerType } from '../types';
+import { Plug, Unplug, Loader2, Moon, Sun, Settings, Globe, List, Plus, Trash2, History, Save, MoreVertical, Monitor, Languages, Shield, ShieldCheck, ArrowRightLeft, Copy, Check, X, FileJson, Pencil, HardDrive, ChevronDown, Radio } from 'lucide-react';
 import { translations } from '../utils/i18n';
 
 interface ConnectionBarProps {
   status: ConnectionStatus;
-  onConnect: (url: string, proxyConfig: { enabled: boolean; prefix: string }, headers: Record<string, string>) => void;
+  onConnect: (url: string, type: McpServerType, proxyConfig: { enabled: boolean; prefix: string }, headers: Record<string, string>) => void;
   onDisconnect: () => void;
   lang: Language;
   setLang: (l: Language) => void;
@@ -19,22 +20,13 @@ interface HeaderItem {
     value: string;
 }
 
-// Internal representation for the UI list derived from the separated configs
-interface ServerListItem {
-    id: string; // This will be the key in the record
-    name: string; // Display name (same as key)
-    url: string;
-    useProxy: boolean;
-    proxyPrefix: string;
-    headers: HeaderItem[];
-}
-
 const DEFAULT_PROXY_URL = '/cors?url=';
 
 export const ConnectionBar: React.FC<ConnectionBarProps> = ({ 
   status, onConnect, onDisconnect, lang, setLang, theme, toggleTheme 
 }) => {
   const [url, setUrl] = useState('http://localhost:3000/sse');
+  const [protocol, setProtocol] = useState<McpServerType>('sse');
   
   // Global Default Proxy State
   const [globalProxyPrefix, setGlobalProxyPrefix] = useState(() => {
@@ -49,6 +41,7 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
   const [showHeaders, setShowHeaders] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showGlobalMenu, setShowGlobalMenu] = useState(false);
+  const [showProtocolSettings, setShowProtocolSettings] = useState(false);
   
   // Headers state
   const [headers, setHeaders] = useState<HeaderItem[]>([]);
@@ -79,6 +72,7 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
   const headersRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<HTMLDivElement>(null);
   const globalMenuRef = useRef<HTMLDivElement>(null);
+  const protocolRef = useRef<HTMLDivElement>(null);
 
   // Track previous status for auto-save trigger
   const prevStatusRef = useRef(status);
@@ -100,10 +94,9 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
     if (savedServersStr) {
         try { 
             const parsed = JSON.parse(savedServersStr); 
-            // Robust check: Ensure it's a non-null object and not an array
             if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
                 loadedServers = parsed;
-                // Backfill type: 'sse' if missing from older versions
+                // Backfill defaults if missing
                 Object.values(loadedServers).forEach(s => {
                     if (!s.type) s.type = 'sse';
                     if (!s.headers) s.headers = {};
@@ -120,51 +113,6 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
         } catch (e) { console.error("Failed to parse extensions", e); }
     }
 
-    // 2. Check for migration from old format
-    const oldConfigsStr = localStorage.getItem('mcp_saved_configs');
-    if (oldConfigsStr && Object.keys(loadedServers).length === 0) {
-        console.log("Migrating old configurations...");
-        try {
-            const oldConfigs = JSON.parse(oldConfigsStr);
-            if (Array.isArray(oldConfigs)) {
-                oldConfigs.forEach((c: any) => {
-                    // Generate a unique name
-                    let name = c.name || 'Server';
-                    let counter = 1;
-                    let uniqueName = name;
-                    while (loadedServers[uniqueName]) {
-                        uniqueName = `${name} ${counter++}`;
-                    }
-
-                    // Convert headers array to record
-                    const headerRecord: Record<string, string> = {};
-                    if (Array.isArray(c.headers)) {
-                        c.headers.forEach((h: any) => {
-                            if (h.key) headerRecord[h.key] = h.value;
-                        });
-                    }
-
-                    loadedServers[uniqueName] = {
-                        url: (c as any).url,
-                        headers: headerRecord,
-                        type: 'sse'
-                    };
-                    
-                    loadedExtensions[uniqueName] = {
-                        useProxy: !!(c as any).useProxy,
-                        proxyPrefix: (c as any).proxyPrefix || 'https://corsproxy.io/?url='
-                    };
-                });
-                
-                // Save immediately
-                localStorage.setItem('mcp_servers_registry', JSON.stringify(loadedServers));
-                localStorage.setItem('mcp_extensions_registry', JSON.stringify(loadedExtensions));
-            }
-        } catch (e) {
-            console.error("Migration failed", e);
-        }
-    }
-
     setServerRegistry(loadedServers);
     setExtensionRegistry(loadedExtensions);
 
@@ -173,12 +121,8 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
     const lastPrefix = localStorage.getItem('mcp_last_proxy_prefix');
     
     if (lastProxy !== null) setUseProxy(lastProxy === 'true');
-    // If we have a last prefix, use it. Otherwise fall back to global default.
-    if (lastPrefix !== null) {
-        setProxyPrefix(lastPrefix);
-    } else {
-        setProxyPrefix(globalProxyPrefix);
-    }
+    if (lastPrefix !== null) setProxyPrefix(lastPrefix);
+    else setProxyPrefix(globalProxyPrefix);
 
   }, []);
 
@@ -209,12 +153,10 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
       }
 
       if (!name) {
-          // Try to find if this URL already exists to update it
           const existingEntry = Object.entries(serverRegistry).find(([_, cfg]) => (cfg as McpServerConfig).url === url);
           if (existingEntry) {
               name = existingEntry[0];
           } else {
-              // Generate new name from URL
               try {
                   const urlObj = new URL(url);
                   name = urlObj.host;
@@ -224,7 +166,6 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
           }
       }
 
-      // Ensure uniqueness if the determined name exists but points to a DIFFERENT URL
       if (name && serverRegistry[name] && serverRegistry[name].url !== url) {
            let counter = 1;
            const baseName = name;
@@ -232,17 +173,15 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
            name = `${baseName}-${counter}`;
       }
 
-      // 2. Prepare Data
       const headerRecord: Record<string, string> = {};
       headers.forEach(h => { if(h.key.trim()) headerRecord[h.key.trim()] = h.value; });
 
-      // 3. Update State
       setServerRegistry(prev => ({
           ...prev,
           [name!]: {
               url,
               headers: headerRecord,
-              type: 'sse'
+              type: protocol
           }
       }));
 
@@ -254,13 +193,12 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
           }
       }));
 
-      // Clear pending config if it was used
       if (pendingImportConfig && pendingImportConfig.url === url) {
           setPendingImportConfig(null);
       }
   };
 
-  // Auto-save effect: Trigger save when successfully connected
+  // Auto-save effect
   useEffect(() => {
     if (prevStatusRef.current !== ConnectionStatus.CONNECTED && status === ConnectionStatus.CONNECTED) {
         upsertServerConfig();
@@ -275,6 +213,7 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
       if (headersRef.current && !headersRef.current.contains(event.target as Node)) setShowHeaders(false);
       if (historyRef.current && !historyRef.current.contains(event.target as Node)) setShowHistory(false);
       if (globalMenuRef.current && !globalMenuRef.current.contains(event.target as Node)) setShowGlobalMenu(false);
+      if (protocolRef.current && !protocolRef.current.contains(event.target as Node)) setShowProtocolSettings(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
@@ -296,11 +235,10 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
           ? globalProxyPrefix 
           : proxyPrefix;
 
-      onConnect(url, { enabled: useProxy, prefix: effectiveProxyPrefix }, headerObj);
+      onConnect(url, protocol, { enabled: useProxy, prefix: effectiveProxyPrefix }, headerObj);
     }
   };
 
-  // Helper to prevent form submission on Enter for config inputs
   const handleEnterKey = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -309,12 +247,10 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
     }
   };
 
-  // Header Management
   const addHeader = () => setHeaders([...headers, { id: Math.random().toString(36).substr(2, 9), key: '', value: '' }]);
   const updateHeader = (id: string, field: 'key' | 'value', val: string) => setHeaders(headers.map(h => h.id === id ? { ...h, [field]: val } : h));
   const removeHeader = (id: string) => setHeaders(headers.filter(h => h.id !== id));
 
-  // History/Config Management
   const handleManualSave = () => {
       upsertServerConfig();
       setShowHistory(false);
@@ -326,6 +262,7 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
 
       if (server) {
           setUrl(server.url);
+          setProtocol(server.type || 'sse');
           const headerArray = Object.entries(server.headers || {}).map(([k, v]) => ({
               id: Math.random().toString(36).substr(2, 9),
               key: k,
@@ -343,7 +280,7 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
       }
 
       setShowHistory(false);
-      setPendingImportConfig(null); // Clear any pending import when loading a saved config
+      setPendingImportConfig(null);
   };
 
   const deleteConfig = (e: React.MouseEvent, key: string) => {
@@ -356,7 +293,6 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
       setExtensionRegistry(newExtensions);
   };
 
-  // Renaming Logic
   const startEditing = (e: React.MouseEvent, key: string) => {
       e.stopPropagation();
       setEditingId(key);
@@ -383,7 +319,6 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
           return;
       }
 
-      // Update Registries
       const newServers = { ...serverRegistry };
       const newExtensions = { ...extensionRegistry };
 
@@ -431,32 +366,28 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
               throw new Error("Invalid config: missing mcpServers or appConfig");
           }
 
-          // Full reload/replace logic (with safe merge for servers)
           let newServerRegistry = { ...serverRegistry };
           let newExtensionRegistry = { ...extensionRegistry };
 
           if (parsed.mcpServers) {
               Object.entries(parsed.mcpServers).forEach(([key, config]) => {
                   const rawConfig = config as any;
-                  // Support baseUrl alias
                   const url = rawConfig.url || rawConfig.baseUrl;
 
                   if (!url) return;
 
-                  // Support internal name as key preference
                   const name = rawConfig.name || key;
 
                   let finalKey = name;
                   let counter = 1;
-                  // If key exists and URL is different, rename.
                   while (newServerRegistry[finalKey] && newServerRegistry[finalKey].url !== url) {
                       finalKey = `${name}-${counter++}`;
                   }
                   
                   newServerRegistry[finalKey] = {
                       url: url,
-                      type: 'sse', // Force type sse
-                      headers: rawConfig.headers ? { ...rawConfig.headers } : {} // Ensure headers exist and are copied
+                      type: rawConfig.type || 'sse',
+                      headers: rawConfig.headers ? { ...rawConfig.headers } : {} 
                   };
                   
                   if (parsed.mcpExtensions && parsed.mcpExtensions[key]) {
@@ -480,16 +411,13 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
       }
   };
 
-  // --- Server Config Import / Export (Just the MCP Servers part) ---
+  // --- Server Config Import / Export ---
   const handleOpenServerConfig = () => {
-      // DEFAULT MODE: Single Config (Current Inputs)
       setConfigMode('single');
 
-      // 1. Identify current config name if it matches a known URL
       const foundEntry = Object.entries(serverRegistry).find(([_, cfg]) => cfg.url === url);
       
       let keyName = foundEntry ? foundEntry[0] : 'new-mcp-server';
-      // If we have a pending name for the current URL, use that as the display name
       if (pendingImportConfig && pendingImportConfig.url === url) {
           keyName = pendingImportConfig.name;
       } else if (!foundEntry) {
@@ -499,18 +427,16 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
         } catch {}
       }
 
-      // 2. Prepare current headers
       const currentHeaders: Record<string, string> = {};
       headers.forEach(h => {
         if (h.key.trim()) currentHeaders[h.key.trim()] = h.value;
       });
 
-      // 3. Construct single server JSON
       const singleConfig = {
           mcpServers: {
               [keyName]: {
-                  type: 'sse',
-                  name: keyName, // Added for display completeness, though not strictly in type
+                  type: protocol,
+                  name: keyName, 
                   url: url,
                   headers: currentHeaders
               }
@@ -540,12 +466,10 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
           if (!parsed.mcpServers) throw new Error("Missing 'mcpServers' key");
 
           if (configMode === 'all') {
-             // MODE: All (Bulk Import/Manage)
              const newServers = { ...serverRegistry };
              
              Object.entries(parsed.mcpServers).forEach(([key, value]) => {
                   const rawConfig = value as any;
-                  // Support baseUrl alias
                   const url = rawConfig.url || rawConfig.baseUrl;
                   const name = rawConfig.name || key;
 
@@ -553,7 +477,6 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
                   
                   let finalKey = name;
                   
-                  // If conflict exists
                   if (newServers[finalKey]) {
                        let counter = 1;
                        while (newServers[finalKey]) {
@@ -563,25 +486,23 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
                   
                   newServers[finalKey] = {
                       url: url,
-                      type: 'sse',
+                      type: rawConfig.type || 'sse',
                       headers: rawConfig.headers ? { ...rawConfig.headers } : {}
                   };
              });
              setServerRegistry(newServers);
              setPendingImportConfig(null);
           } else {
-             // MODE: Single (Update Inputs Only)
              const keys = Object.keys(parsed.mcpServers);
              if (keys.length === 0) throw new Error("No server definition found in JSON");
              
-             // Take the first server defined
              const firstKey = keys[0];
              const rawConfig = parsed.mcpServers[firstKey] as any;
              const url = rawConfig.url || rawConfig.baseUrl;
              const name = rawConfig.name || firstKey;
              
-             // Update Inputs
              setUrl(url || '');
+             setProtocol(rawConfig.type || 'sse');
              
              const newHeaders: HeaderItem[] = [];
              if (rawConfig.headers) {
@@ -595,8 +516,6 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
              }
              setHeaders(newHeaders);
              
-             // Note: We DO NOT save to registry here. It just fills the inputs.
-             // But we store the name in pending state so it is used when the user clicks Save or Connect.
              if (url && name) {
                  setPendingImportConfig({ name, url });
              }
@@ -625,114 +544,63 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
       <form onSubmit={handleSubmit} className="flex-1 flex items-center gap-2 min-w-0 mt-4">
         <div className="relative flex-1 group min-w-0 flex items-center gap-2">
            <div className="relative flex-1">
-                {/* Left: History/Saved Button */}
-                <div className="absolute inset-y-0 left-0 pl-1 flex items-center">
+                {/* Left: Protocol Selector */}
+                <div className="absolute inset-y-0 left-0 flex items-center z-20">
                     <button 
                         type="button"
-                        onClick={() => setShowHistory(!showHistory)}
-                        className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs font-bold font-mono transition-colors ${
-                            isConnected ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        onClick={() => !isConnected && !isConnecting && setShowProtocolSettings(!showProtocolSettings)}
+                        disabled={isConnected || isConnecting}
+                        className={`flex items-center gap-1 px-2.5 py-1 h-[80%] my-auto ml-1 rounded text-[10px] font-bold font-mono transition-colors tracking-wide ${
+                            isConnected 
+                            ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 cursor-default' 
+                            : 'text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer'
                         }`}
-                        title={t.savedConfigs}
+                        title={t.protocol}
                     >
-                         <History className="w-3.5 h-3.5" />
-                         <span className="hidden lg:inline">SSE</span>
+                         {protocol === 'sse' ? 'SSE' : 'STREAM'}
+                         {!isConnected && !isConnecting && <ChevronDown className="w-3 h-3 opacity-50" />}
                     </button>
+                    
+                    {/* Protocol Settings Popover */}
+                    {showProtocolSettings && (
+                        <div ref={protocolRef} className="absolute left-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 p-3">
+                             <h3 className="font-semibold text-xs text-gray-500 uppercase tracking-wider mb-2">{t.protocol}</h3>
+                             <div className="space-y-1">
+                                <label className={`flex items-start gap-3 p-2 rounded cursor-pointer transition-colors ${protocol === 'sse' ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
+                                    <input 
+                                        type="radio" 
+                                        name="protocol" 
+                                        className="mt-1"
+                                        checked={protocol === 'sse'} 
+                                        onChange={() => { setProtocol('sse'); setShowProtocolSettings(false); }}
+                                    />
+                                    <div>
+                                        <div className="text-sm font-medium text-gray-900 dark:text-gray-200">SSE</div>
+                                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t.sseDesc}</div>
+                                    </div>
+                                </label>
+                                <label className={`flex items-start gap-3 p-2 rounded cursor-pointer transition-colors ${protocol === 'streamable_http' ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
+                                    <input 
+                                        type="radio" 
+                                        name="protocol" 
+                                        className="mt-1"
+                                        checked={protocol === 'streamable_http'} 
+                                        onChange={() => { setProtocol('streamable_http'); setShowProtocolSettings(false); }}
+                                    />
+                                    <div>
+                                        <div className="text-sm font-medium text-gray-900 dark:text-gray-200">STREAM</div>
+                                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t.httpDesc}</div>
+                                    </div>
+                                </label>
+                             </div>
+                        </div>
+                    )}
                 </div>
-
-                {/* History Popover */}
-                {showHistory && (
-                    <div ref={historyRef} className="absolute left-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 p-2">
-                        <div className="flex items-center justify-between px-2 py-1 mb-2 border-b border-gray-100 dark:border-gray-700">
-                             <span className="text-xs font-semibold text-gray-500 uppercase">{t.history}</span>
-                             <button type="button" onClick={handleManualSave} className="flex items-center gap-1 text-xs text-blue-600 font-medium hover:bg-blue-50 dark:hover:bg-blue-900/30 px-2 py-1 rounded">
-                                 <Save className="w-3 h-3" /> {t.saveCurrent}
-                             </button>
-                        </div>
-                        <div className="max-h-60 overflow-y-auto space-y-1">
-                            {historyItems.length === 0 && (
-                                <div className="text-center py-4 text-xs text-gray-400">{t.noSaved}</div>
-                            )}
-                            {historyItems.map(item => (
-                                <div 
-                                    key={item.key} 
-                                    onClick={() => editingId !== item.key && loadConfig(item.key)}
-                                    className={`group flex items-center justify-between px-3 py-2 rounded transition-colors ${
-                                        editingId === item.key ? 'bg-blue-50 dark:bg-blue-900/20 cursor-default' : 'hover:bg-gray-100 dark:hover:bg-gray-700/50 cursor-pointer'
-                                    }`}
-                                >
-                                    {editingId === item.key ? (
-                                        <div className="flex items-center gap-1 w-full" onClick={e => e.stopPropagation()}>
-                                            <input 
-                                                autoFocus
-                                                value={editingName}
-                                                onChange={e => setEditingName(e.target.value)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        saveEditing(e as any, item.key);
-                                                    } else if (e.key === 'Escape') {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        cancelEditing(e as any);
-                                                    }
-                                                }}
-                                                className="flex-1 min-w-0 text-xs px-2 py-1 rounded border border-blue-300 dark:border-blue-600 bg-white dark:bg-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                            />
-                                            <button 
-                                                type="button"
-                                                onClick={(e) => saveEditing(e, item.key)}
-                                                className="p-1 text-green-600 hover:text-green-700"
-                                                title={t.save}
-                                            >
-                                                <Check className="w-3.5 h-3.5" />
-                                            </button>
-                                            <button 
-                                                type="button"
-                                                onClick={(e) => cancelEditing(e)}
-                                                className="p-1 text-gray-400 hover:text-gray-600"
-                                                title={t.cancel}
-                                            >
-                                                <X className="w-3.5 h-3.5" />
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div className="flex flex-col min-w-0">
-                                                <span className="text-sm font-medium text-gray-900 dark:text-gray-200 truncate">{item.key}</span>
-                                                <span className="text-[10px] text-gray-500 truncate">{item.url}</span>
-                                            </div>
-                                            <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button 
-                                                    type="button"
-                                                    onClick={(e) => startEditing(e, item.key)}
-                                                    className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors"
-                                                    title={t.rename}
-                                                >
-                                                    <Pencil className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button 
-                                                    type="button"
-                                                    onClick={(e) => deleteConfig(e, item.key)} 
-                                                    className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
 
                 <input 
                     type="text" 
-                    placeholder={t.ssePlaceholder}
-                    className={`w-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-200 text-sm rounded-md h-9 pl-16 pr-20 transition-all font-mono focus:outline-none ${
+                    placeholder={protocol === 'sse' ? t.ssePlaceholder : t.httpPlaceholder}
+                    className={`w-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-200 text-sm rounded-md h-9 pl-24 pr-20 transition-all font-mono focus:outline-none ${
                         isConnected 
                         ? 'border border-green-500 dark:border-green-400 ring-1 ring-green-500/20 shadow-[0_0_8px_rgba(34,197,94,0.1)] disabled:opacity-100' 
                         : 'border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50'
@@ -872,6 +740,120 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
         >
             <FileJson className="w-4 h-4" />
         </button>
+
+        {/* History Button (Moved here) */}
+        <div className="relative shrink-0">
+            <button 
+                type="button"
+                onClick={() => setShowHistory(!showHistory)}
+                className={`flex items-center justify-center h-9 w-9 rounded-md transition-colors ${
+                    showHistory 
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' 
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300'
+                }`}
+                title={t.savedConfigs}
+            >
+                    <History className="w-4 h-4" />
+            </button>
+
+            {/* History Popover */}
+            {showHistory && (
+                <div ref={historyRef} className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 p-2">
+                    <div className="flex items-center justify-between px-2 py-1 mb-2 border-b border-gray-100 dark:border-gray-700">
+                            <span className="text-xs font-semibold text-gray-500 uppercase">{t.history}</span>
+                            <button type="button" onClick={handleManualSave} className="flex items-center gap-1 text-xs text-blue-600 font-medium hover:bg-blue-50 dark:hover:bg-blue-900/30 px-2 py-1 rounded">
+                                <Save className="w-3 h-3" /> {t.saveCurrent}
+                            </button>
+                    </div>
+                    <div className="max-h-60 overflow-y-auto space-y-1">
+                        {historyItems.length === 0 && (
+                            <div className="text-center py-4 text-xs text-gray-400">{t.noSaved}</div>
+                        )}
+                        {historyItems.map(item => (
+                            <div 
+                                key={item.key} 
+                                onClick={() => editingId !== item.key && loadConfig(item.key)}
+                                className={`group flex items-center justify-between px-3 py-2 rounded transition-colors ${
+                                    editingId === item.key ? 'bg-blue-50 dark:bg-blue-900/20 cursor-default' : 'hover:bg-gray-100 dark:hover:bg-gray-700/50 cursor-pointer'
+                                }`}
+                            >
+                                {editingId === item.key ? (
+                                    <div className="flex items-center gap-1 w-full" onClick={e => e.stopPropagation()}>
+                                        <input 
+                                            autoFocus
+                                            value={editingName}
+                                            onChange={e => setEditingName(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    saveEditing(e as any, item.key);
+                                                } else if (e.key === 'Escape') {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    cancelEditing(e as any);
+                                                }
+                                            }}
+                                            className="flex-1 min-w-0 text-xs px-2 py-1 rounded border border-blue-300 dark:border-blue-600 bg-white dark:bg-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                        <button 
+                                            type="button"
+                                            onClick={(e) => saveEditing(e, item.key)}
+                                            className="p-1 text-green-600 hover:text-green-700"
+                                            title={t.save}
+                                        >
+                                            <Check className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            onClick={(e) => cancelEditing(e)}
+                                            className="p-1 text-gray-400 hover:text-gray-600"
+                                            title={t.cancel}
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="flex flex-col min-w-0">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className={`text-[9px] font-bold px-1 rounded border ${
+                                                    item.type === 'streamable_http' 
+                                                    ? 'text-purple-600 border-purple-200 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-800 dark:text-purple-300' 
+                                                    : 'text-gray-500 border-gray-200 bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
+                                                }`}>
+                                                    {item.type === 'streamable_http' ? 'STR' : 'SSE'}
+                                                </span>
+                                                <span className="text-sm font-medium text-gray-900 dark:text-gray-200 truncate">{item.key}</span>
+                                            </div>
+                                            <span className="text-[10px] text-gray-500 truncate">{item.url}</span>
+                                        </div>
+                                        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button 
+                                                type="button"
+                                                onClick={(e) => startEditing(e, item.key)}
+                                                className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors"
+                                                title={t.rename}
+                                            >
+                                                <Pencil className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button 
+                                                type="button"
+                                                onClick={(e) => deleteConfig(e, item.key)} 
+                                                className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                                                title="Delete"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
 
         {/* Connect Button */}
         <button 
