@@ -9,7 +9,7 @@ export interface ProxyConfig {
 }
 
 export class McpClient {
-  private eventSource: EventSource | null = null;
+  private abortController: AbortController | null = null;
   private postUrl: string | null = null;
   private messageHandlers: MessageHandler[] = [];
   private errorHandlers: ErrorHandler[] = [];
@@ -23,92 +23,151 @@ export class McpClient {
   constructor() {}
 
   connect(sseUrl: string, proxyConfig: ProxyConfig = { enabled: false, prefix: '' }, headers: Record<string, string> = {}): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
         this.proxyConfig = proxyConfig;
         this.originalSseUrl = sseUrl;
         this.headers = headers;
 
         // Close existing connection if any
-        if (this.eventSource) {
-          this.eventSource.close();
-        }
+        this.disconnect();
+
+        this.abortController = new AbortController();
 
         // Construct the actual connection URL
-        // If proxy is enabled, prepend the prefix.
-        // We do NOT encode the target URL by default as simple concatenation is the standard for many proxies (like corsproxy.io/?url=TARGET)
-        // unless specific handling is required, but straight concatenation gives user most control via the prefix.
         const connectionUrl = proxyConfig.enabled ? proxyConfig.prefix + sseUrl : sseUrl;
 
-        // Note: Standard EventSource does not support custom headers. 
-        // These headers will only be used for the POST requests (sendRequest/sendNotification).
-        this.eventSource = new EventSource(connectionUrl);
-
-        this.eventSource.onopen = () => {
-          // Wait for the 'endpoint' event to fully consider connected in the logic flow,
-          // but strictly speaking, SSE is open here.
-        };
-
-        this.eventSource.onerror = (e) => {
-          this.emitError('SSE Connection Error. Ensure the server enables CORS and is running.');
-          
-          // Stop the browser from retrying indefinitely
-          if (this.eventSource) {
-            this.eventSource.close();
-            this.eventSource = null;
-          }
-
-          if (this.postUrl === null) {
-              // If we fail before getting an endpoint, reject the connection promise
-              reject(new Error('Failed to connect to SSE'));
-          }
-        };
-
-        // Listen for the specific 'endpoint' event defined in MCP Streamable HTTP spec
-        this.eventSource.addEventListener('endpoint', (event: MessageEvent) => {
-          try {
-            const url = event.data;
-            
-            // Critical: Resolve the endpoint URL relative to the ORIGINAL SSE URL (as the server sees it),
-            // not the proxied URL we are actually connected to.
-            // new URL('/foo', 'http://original.com/sse') -> 'http://original.com/foo'
-            const resolvedUrl = new URL(url, this.originalSseUrl).toString();
-
-            // If proxy is enabled, wrap the resolved POST URL in the proxy as well
-            if (this.proxyConfig.enabled) {
-                this.postUrl = this.proxyConfig.prefix + resolvedUrl;
-            } else {
-                this.postUrl = resolvedUrl;
-            }
-            
-            console.log('MCP Post Endpoint received:', this.postUrl);
-            resolve();
-          } catch (e) {
-            this.emitError(`Invalid endpoint URL received: ${event.data}`);
-            reject(e);
-          }
+        // Use fetch instead of EventSource to support headers
+        const response = await fetch(connectionUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                ...this.headers
+            },
+            signal: this.abortController.signal
         });
 
-        // Listen for standard messages (JSON-RPC responses/notifications)
-        this.eventSource.onmessage = (event: MessageEvent) => {
-          try {
-            const data = JSON.parse(event.data);
-            this.handleIncomingMessage(data);
-          } catch (e) {
-            this.emitError(`Failed to parse incoming message: ${event.data}`);
-          }
-        };
+        if (!response.ok) {
+            const msg = `Connection failed: ${response.status} ${response.statusText}`;
+            this.emitError(msg);
+            reject(new Error(msg));
+            return;
+        }
 
-      } catch (err) {
-        reject(err);
+        if (!response.body) {
+            reject(new Error('No response body received from SSE endpoint'));
+            return;
+        }
+
+        // Start reading the stream
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        
+        // We resolve the promise only when we receive the 'endpoint' event
+        this.readSseStream(reader, decoder, resolve, reject);
+
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+            // Ignore abort errors on disconnect
+        } else {
+            reject(err);
+        }
       }
     });
   }
 
+  private async readSseStream(
+      reader: ReadableStreamDefaultReader<Uint8Array>, 
+      decoder: TextDecoder,
+      resolve: () => void,
+      reject: (reason?: any) => void
+  ) {
+      let buffer = '';
+      let resolved = false;
+
+      try {
+          while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              
+              const chunk = decoder.decode(value, { stream: true });
+              buffer += chunk;
+              
+              // Process buffer for events (separated by double newline)
+              // We split by \n\n to separate events
+              const parts = buffer.split(/\n\n/);
+              
+              // The last part is either empty (if buffer ended with \n\n) or incomplete
+              // Keep it in the buffer for the next chunk
+              buffer = parts.pop() || '';
+
+              for (const part of parts) {
+                  if (!part.trim()) continue;
+                  
+                  const lines = part.split('\n');
+                  let eventType = 'message';
+                  let data = '';
+
+                  for (const line of lines) {
+                      if (line.startsWith('event: ')) {
+                          eventType = line.substring(7).trim();
+                      } else if (line.startsWith('data: ')) {
+                          // Standard SSE: concatenate data lines. 
+                          // JSON content usually doesn't care about missing newlines between data lines 
+                          // unless strings are split across lines, which we assume JSON stringify doesn't do aggressively.
+                          data += line.substring(6);
+                      }
+                  }
+
+                  if (eventType === 'endpoint') {
+                      try {
+                          const url = data.trim();
+                          const resolvedUrl = new URL(url, this.originalSseUrl).toString();
+
+                          if (this.proxyConfig.enabled) {
+                              this.postUrl = this.proxyConfig.prefix + resolvedUrl;
+                          } else {
+                              this.postUrl = resolvedUrl;
+                          }
+                          console.log('MCP Post Endpoint received:', this.postUrl);
+                          
+                          if (!resolved) {
+                              resolved = true;
+                              resolve();
+                          }
+                      } catch (e) {
+                          this.emitError(`Invalid endpoint URL: ${data}`);
+                          if (!resolved) reject(e);
+                      }
+                  } else if (eventType === 'message') {
+                      try {
+                          if (data) {
+                            const json = JSON.parse(data);
+                            this.handleIncomingMessage(json);
+                          }
+                      } catch (e) {
+                          console.error("Failed to parse SSE message", data);
+                      }
+                  }
+              }
+          }
+      } catch (error: any) {
+          if (error.name !== 'AbortError') {
+              this.emitError(`Stream error: ${error.message}`);
+              if (!resolved) reject(error);
+          }
+      } finally {
+          try {
+             reader.releaseLock();
+          } catch(e) {}
+      }
+  }
+
   disconnect() {
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = null;
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
     }
     this.postUrl = null;
     this.pendingRequests.clear();
@@ -185,10 +244,6 @@ export class McpClient {
         const text = await res.text();
         throw new Error(`HTTP Error ${res.status}: ${text}`);
       }
-
-      // Note: The actual JSON-RPC response usually comes via SSE, 
-      // but some implementations might return it in the POST response too.
-      // We rely on the SSE listener to resolve the promise usually.
       
     } catch (e: any) {
       this.pendingRequests.delete(id);

@@ -25,20 +25,32 @@ const App: React.FC = () => {
   // Store state (args + results) per tool name
   const [toolStates, setToolStates] = useState<Record<string, ToolState>>({});
   
-  // Settings
-  const [lang, setLang] = useState<Language>('zh');
-  const [theme, setTheme] = useState<Theme>('light');
+  // Settings - Initialize from localStorage
+  const [lang, setLang] = useState<Language>(() => {
+      const saved = localStorage.getItem('mcp_language');
+      return (saved === 'en' || saved === 'zh') ? saved : 'zh';
+  });
+  const [theme, setTheme] = useState<Theme>(() => {
+      const saved = localStorage.getItem('mcp_theme');
+      return (saved === 'dark' || saved === 'light') ? saved : 'light';
+  });
 
   const mcpClient = useRef<McpClient>(new McpClient());
 
-  // Apply Theme
+  // Apply Theme & Persist
   useEffect(() => {
+    localStorage.setItem('mcp_theme', theme);
     if (theme === 'dark') {
         document.documentElement.classList.add('dark');
     } else {
         document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  // Persist Language
+  useEffect(() => {
+    localStorage.setItem('mcp_language', lang);
+  }, [lang]);
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
@@ -264,7 +276,7 @@ const App: React.FC = () => {
       {/* Footer */}
       <footer className="h-7 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 text-[11px] text-gray-500 dark:text-gray-500 shrink-0 select-none shadow-[0_-1px_3px_rgba(0,0,0,0.02)] z-50">
           <div className="flex items-center gap-4">
-            <span className="font-mono bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-[10px] tracking-wide text-gray-600 dark:text-gray-400">v0.0.2</span>
+            <span className="font-mono bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-[10px] tracking-wide text-gray-600 dark:text-gray-400">v0.0.3</span>
             <span>
               Author: <a href="https://github.com/Ericwyn" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">@Ericwyn</a>
             </span>
