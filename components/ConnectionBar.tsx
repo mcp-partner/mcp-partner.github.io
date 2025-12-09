@@ -44,12 +44,10 @@ const DEFAULT_PROXY_URL = isVercelOrLocal ? '/cors?url=' : 'https://corsproxy.io
 
 // Helper for normalization
 const normalizeTransport = (t: string | undefined | null): TransportType => {
-    if (!t) return 'sse';
-    const val = String(t).trim().toLowerCase();
-    if (val === 'http' || val === 'streamable_http' || val === 'streamable http') {
-        return 'streamable_http';
+    if (t && String(t).trim().toLowerCase() === 'sse') {
+        return 'sse';
     }
-    return 'sse';
+    return 'streamable_http';
 };
 
 const isStreamTransport = (t: string | undefined | null): boolean => {
