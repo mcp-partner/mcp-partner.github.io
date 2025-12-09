@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ConnectionBar } from './components/ConnectionBar';
 import { Sidebar } from './components/Sidebar';
@@ -9,6 +10,7 @@ import { StreamableHttpMcpClient } from './services/streamableHttpMcpClient';
 import { ConnectionStatus, LogEntry, McpTool, JsonRpcMessage, Language, Theme, TransportType } from './types';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import { Github } from 'lucide-react';
+import { APP_VERSION, REPO_URL } from './constants';
 
 interface ToolState {
     argsJson: string;
@@ -363,13 +365,13 @@ const App: React.FC = () => {
       <footer className="h-7 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 text-[11px] text-gray-500 dark:text-gray-500 shrink-0 select-none shadow-[0_-1px_3px_rgba(0,0,0,0.02)] z-50">
           <div className="flex items-center gap-4">
             <span className="font-mono bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-[10px] tracking-wide text-gray-600 dark:text-gray-400">
-            v0.2.5-Online MCP Client
+            v{APP_VERSION}
             </span>
             <span>
               Author: <a href="https://github.com/Ericwyn" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">@Ericwyn</a>
             </span>
           </div>
-          <a href="https://github.com/Ericwyn/mcp-partner" target="_blank" rel="noopener noreferrer" className="hover:text-gray-800 dark:hover:text-gray-300 transition-colors flex items-center gap-1.5 group">
+          <a href={REPO_URL} target="_blank" rel="noopener noreferrer" className="hover:text-gray-800 dark:hover:text-gray-300 transition-colors flex items-center gap-1.5 group">
              <Github className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
              <span>github.com/Ericwyn/mcp-partner</span>
           </a>

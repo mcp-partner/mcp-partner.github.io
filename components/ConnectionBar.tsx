@@ -1,7 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ConnectionStatus, Language, Theme, McpPartnerConfig, McpServerConfig, McpExtensionConfig, TransportType } from '../types';
-import { Plug, Unplug, Settings, Plus, Trash2, History, Save, Monitor, Languages, Shield, ShieldCheck, Check, X, FileJson, Pencil, HardDrive, ChevronDown, List, Copy, Sun, Moon } from 'lucide-react';
+import { Plug, Unplug, Settings, Plus, Trash2, History, Save, Monitor, Languages, Shield, ShieldCheck, Check, X, FileJson, Pencil, HardDrive, ChevronDown, List, Copy, Sun, Moon, Info } from 'lucide-react';
 import { translations } from '../utils/i18n';
+import { AboutModal } from './AboutModal';
 
 interface ConnectionBarProps {
   status: ConnectionStatus;
@@ -55,6 +57,7 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
   const [showHistoryModal, setShowHistoryModal] = useState(false); // Changed to Modal
   const [showGlobalMenu, setShowGlobalMenu] = useState(false);
   const [showTransport, setShowTransport] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
   
   // Headers state
   const [headers, setHeaders] = useState<HeaderItem[]>([]);
@@ -556,10 +559,15 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
       ...serverRegistry[key]
   }));
 
+  const handleOpenAbout = () => {
+      setShowAboutModal(true);
+      setShowGlobalMenu(false);
+  }
+
   return (
     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 pb-4 flex items-center gap-4 shadow-sm transition-colors duration-200 relative z-50">
       {/* Title */}
-      <div className="flex flex-col justify-center shrink-0 pt-4">
+      <div className="flex flex-col justify-center shrink-0 pt-4 cursor-default">
         <div className="font-black text-xl text-blue-600 dark:text-blue-400 leading-none tracking-tight">MCP Partner</div>
         <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-px mt-0.5">{t.appTitle}</span>
       </div>
@@ -875,6 +883,17 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
                            {t.importExport}
                        </div>
                    </button>
+
+                   <button 
+                      type="button"
+                      onClick={handleOpenAbout}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between border-t border-gray-100 dark:border-gray-700"
+                   >
+                       <div className="flex items-center gap-2">
+                           <Info className="w-4 h-4" />
+                           {t.about}
+                       </div>
+                   </button>
                </div>
            )}
         </div>
@@ -1121,6 +1140,11 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
                     </div>
                 </div>
             </div>
+      )}
+
+      {/* About Modal */}
+      {showAboutModal && (
+          <AboutModal onClose={() => setShowAboutModal(false)} lang={lang} />
       )}
     </div>
   );

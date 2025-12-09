@@ -93,6 +93,12 @@ export const translations = {
     transportHttp: 'Streamable HTTP',
     sseDesc: 'Standard Server-Sent Events protocol. Ideal for real-time updates and simple server setups.',
     httpDesc: 'Model Context Protocol over HTTP POST streams. Supports robust bidirectional JSON-RPC communication.',
+    about: 'About',
+    version: 'Version',
+    readDocs: 'Read Documentation',
+    aboutDesc: 'A Postman-like interface for testing and interacting with Model Context Protocol (MCP) Servers.',
+    createdBy: 'Created by',
+    visitRepo: 'Visit Repository'
   },
   zh: {
     appTitle: 'MCP 调试助手',
@@ -184,5 +190,11 @@ export const translations = {
     transportHttp: 'Streamable HTTP',
     sseDesc: '标准 SSE (Server-Sent Events) 协议。适用于实时更新和简单的服务器设置。',
     httpDesc: '基于 HTTP POST 流的 Model Context Protocol。支持稳健的双向 JSON-RPC 通信。',
+    about: '关于',
+    version: '版本',
+    readDocs: '阅读在线文档',
+    aboutDesc: '一个类似 Postman 的工具，用于通过 SSE 测试和交互 Model Context Protocol (MCP) 服务器。',
+    createdBy: '作者',
+    visitRepo: '访问代码仓库'
   }
 };

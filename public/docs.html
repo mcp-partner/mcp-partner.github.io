@@ -1,0 +1,182 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - MCP Partner</title>
+    <meta name="description" content="Documentation for MCP Partner, the online Model Context Protocol client.">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .prose h3 { margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; color: #1e293b; }
+        .prose p { margin-bottom: 1rem; color: #475569; line-height: 1.6; }
+        .prose code { background-color: #f1f5f9; padding: 0.125rem 0.25rem; rounded: 0.25rem; font-size: 0.875em; color: #0f172a; font-family: monospace; }
+        .prose pre { background-color: #1e293b; color: #e2e8f0; padding: 1rem; rounded-lg; overflow-x: auto; margin-bottom: 1rem; }
+        .nav-link { color: #64748b; font-weight: 500; transition: color 0.2s; }
+        .nav-link:hover { color: #2563eb; }
+    </style>
+</head>
+<body class="bg-white text-slate-800 antialiased">
+
+    <!-- Header -->
+    <header class="fixed w-full bg-white/80 backdrop-blur-md border-b border-slate-200 z-50">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="/icon.svg" alt="Logo" class="w-8 h-8">
+                <span class="font-bold text-lg text-slate-900 tracking-tight">MCP Partner <span class="text-slate-400 font-normal ml-2 text-sm">Docs</span></span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="https://github.com/Ericwyn/mcp-partner" target="_blank" class="hidden sm:block text-slate-500 hover:text-slate-900 transition-colors">GitHub</a>
+                <a href="/" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors">Open App</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="pt-24 pb-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-12">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 shrink-0 hidden md:block relative">
+            <div class="fixed top-24 w-64 space-y-8 h-[calc(100vh-6rem)] overflow-y-auto pr-4">
+                <div>
+                    <h5 class="font-bold text-slate-900 mb-4">Getting Started</h5>
+                    <ul class="space-y-3 border-l border-slate-200 ml-1">
+                        <li><a href="#introduction" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Introduction</a></li>
+                        <li><a href="#quick-start" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Quick Start</a></li>
+                        <li><a href="#features" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Features</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="font-bold text-slate-900 mb-4">Configuration</h5>
+                    <ul class="space-y-3 border-l border-slate-200 ml-1">
+                        <li><a href="#cors-proxy" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">CORS & Proxy</a></li>
+                        <li><a href="#transports" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Transports (SSE/HTTP)</a></li>
+                        <li><a href="#settings" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Settings & Persistence</a></li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 prose max-w-none">
+            
+            <section id="introduction" class="mb-16">
+                <h1 class="text-4xl font-extrabold text-slate-900 mb-6">Introduction</h1>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    MCP Partner is a client-side debugging and interaction tool for the <a href="https://modelcontextprotocol.io/" class="text-blue-600 underline" target="_blank">Model Context Protocol (MCP)</a>. 
+                    Think of it as "Postman for MCP". It allows developers to connect to MCP servers, discover available tools, and execute them with an intuitive UI.
+                </p>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                    <p class="text-blue-800 font-medium m-0">
+                        ⚡️ No installation required. MCP Partner runs entirely in your browser as a Progressive Web App (PWA).
+                    </p>
+                </div>
+            </section>
+
+            <section id="quick-start" class="mb-16 pt-8 border-t border-slate-100">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6">Quick Start</h2>
+                
+                <div class="space-y-8">
+                    <div>
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-700 rounded-full font-bold">1</span>
+                            <h3 class="text-xl font-bold text-slate-900 m-0">Connect to a Server</h3>
+                        </div>
+                        <p>
+                            Enter the URL of your MCP server in the top bar. The application supports standard SSE (Server-Sent Events) and Streamable HTTP endpoints.
+                            <br>Example: <code>http://localhost:3000/sse</code>
+                        </p>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-700 rounded-full font-bold">2</span>
+                            <h3 class="text-xl font-bold text-slate-900 m-0">Select a Tool</h3>
+                        </div>
+                        <p>
+                            Once connected, the sidebar will populate with available tools discovered from the server. Click on any tool to view its definition.
+                        </p>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-700 rounded-full font-bold">3</span>
+                            <h3 class="text-xl font-bold text-slate-900 m-0">Execute & Debug</h3>
+                        </div>
+                        <p>
+                            Fill in the parameters using the auto-generated Form view or switch to JSON view for raw editing. Click <strong>Send</strong> to execute the tool and view the JSON-RPC response in real-time.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="features" class="mb-16 pt-8 border-t border-slate-100">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6">Key Features</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
+                        <h4 class="font-bold text-slate-900 mb-2">Dynamic Forms</h4>
+                        <p class="text-sm text-slate-600 m-0">Automatically generates UI forms based on the tool's JSON Schema, supporting validation, booleans, and descriptions.</p>
+                    </div>
+                    <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
+                        <h4 class="font-bold text-slate-900 mb-2">Request History & Logs</h4>
+                        <p class="text-sm text-slate-600 m-0">View full JSON-RPC traffic in the bottom console, including request IDs, methods, and full error stacks.</p>
+                    </div>
+                    <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
+                        <h4 class="font-bold text-slate-900 mb-2">State Persistence</h4>
+                        <p class="text-sm text-slate-600 m-0">Your server list, tool parameters, and execution results are saved locally, so you can pick up where you left off.</p>
+                    </div>
+                    <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
+                        <h4 class="font-bold text-slate-900 mb-2">Config Import/Export</h4>
+                        <p class="text-sm text-slate-600 m-0">Share your server configurations with teammates by exporting a simple JSON file.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="cors-proxy" class="mb-16 pt-8 border-t border-slate-100">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6">CORS & Proxying</h2>
+                <p>
+                    Browsers enforce strict CORS (Cross-Origin Resource Sharing) policies. If your local MCP server does not send the correct <code>Access-Control-Allow-Origin</code> headers, the browser will block the connection.
+                </p>
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6">
+                    <p class="text-amber-800 font-bold m-0 text-sm">Symptoms of CORS issues: Connection failing immediately with "Network Error" or 0 status code logs.</p>
+                </div>
+
+                <h3 class="text-xl font-bold mb-3">Solutions</h3>
+                <ol class="list-decimal pl-5 space-y-2 text-slate-600">
+                    <li>
+                        <strong>Use the built-in Proxy:</strong> Click the 🛡️ icon in the connection bar and enable "Use Proxy". This routes requests through a CORS-friendly forwarder.
+                    </li>
+                    <li>
+                        <strong>Configure your Server:</strong> Ensure your MCP server implementation sets <code>Access-Control-Allow-Origin: *</code> (or your specific domain) for both SSE and POST endpoints.
+                    </li>
+                    <li>
+                        <strong>Use Pancors:</strong> For heavy local development, run a local proxy like <a href="https://github.com/Ericwyn/pancors" target="_blank" class="text-blue-600 underline">pancors</a>.
+                    </li>
+                </ol>
+            </section>
+
+             <section id="transports" class="mb-16 pt-8 border-t border-slate-100">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6">Supported Transports</h2>
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">SSE (Server-Sent Events)</h3>
+                        <p>The default mode. The client connects via <code>GET</code> to receive events and discovers a <code>POST</code> endpoint for sending requests.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Streamable HTTP</h3>
+                        <p>Uses the newer MCP SDK transport method over HTTP streams. Useful for environments where standard SSE might be restrictive or for specific server implementations.</p>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="mt-20 pt-8 border-t border-slate-200 text-center text-slate-500 text-sm">
+                <p>&copy; 2024 MCP Partner. Open Source.</p>
+            </footer>
+
+        </div>
+    </main>
+
+</body>
+</html>
