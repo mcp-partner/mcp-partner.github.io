@@ -153,7 +153,13 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
       headers.forEach(h => {
           if(h.key.trim()) headerObj[h.key.trim()] = h.value;
       });
-      onConnect(url, { enabled: useProxy, prefix: proxyPrefix }, headerObj);
+
+      // Use default proxy if enabled but empty
+      const effectiveProxyPrefix = (useProxy && !proxyPrefix.trim()) 
+          ? 'https://corsproxy.io/?url=' 
+          : proxyPrefix;
+
+      onConnect(url, { enabled: useProxy, prefix: effectiveProxyPrefix }, headerObj);
     }
   };
 
@@ -383,6 +389,7 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
                                     className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-200 text-sm rounded-md p-2 focus:ring-green-500 focus:border-green-500"
                                     value={proxyPrefix}
                                     onChange={e => setProxyPrefix(e.target.value)}
+                                    placeholder="Default: https://corsproxy.io/?url="
                                 />
                                 <a 
                                   href="https://github.com/Ericwyn/pancors" 

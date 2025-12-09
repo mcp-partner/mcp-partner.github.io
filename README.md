@@ -28,11 +28,11 @@
 
 | 1. 默认首页 | 2. 连接状态 & 工具调用 |
 | :---: | :---: |
-| ![Default](docs/screenshots/1.png) | ![Connected](docs/screenshots/2.png) |
+| ![Default](screenshot/mcp-partner-screenshot-1.png) | ![Connected](screenshot/mcp-partner-screenshot-2.png) |
 
 | 3. 历史记录 & 配置管理 | |
 | :---: | :---: |
-| ![History](docs/screenshots/3.png) | |
+| ![History](screenshot/mcp-partner-screenshot-3.png) | |
 
 ## 常见问题：CORS 跨域
 
@@ -40,10 +40,12 @@
 
 为了解决这个问题，MCP Partner 提供了内置的代理解决方案：
 
-1. **一键代理**: 点击连接栏右侧的盾牌图标 🛡️，勾选 "启用 CORS 代理"。
+1. **一键代理**: 点击连接栏右侧的盾牌图标 🛡️，勾选 "启用 CORS 代理" (默认使用 [corsproxy.io](corsproxy.io))。
 2. **Pancors 支持**: 我们针对 [Pancors](https://github.com/Ericwyn/pancors) 代理服务进行了深度适配。
    - 工具会自动在发送 JSON 数据前发送 `OPTIONS` 预检请求，确保复杂请求能通过严格的代理校验。
    - 推荐点击代理设置中的链接，部署一个自己的 Pancors 服务以获得最稳定的体验。
+
+![AutoProxy](screenshot/mcp-partner-screenshot-4.png)
 
 ## 使用说明
 
