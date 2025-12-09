@@ -82,7 +82,12 @@ class CustomStreamableTransport implements Transport {
             if (e.name !== 'AbortError') {
                  // Propagate error if start failed immediately
                  console.warn("Failed to establish GET background stream:", e);
-                 // We don't throw here to allow POST-based communication to attempt to work
+                 // If it is a TypeError (Network Error/CORS), rethrow it so connection fails visibly.
+                 // We only suppress http error statuses (handled by response.ok check above) or logic errors, 
+                 // but basic fetch failures usually mean we can't talk to the server at all.
+                 if (e instanceof TypeError) {
+                     throw e;
+                 }
             }
         }
     }

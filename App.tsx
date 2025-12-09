@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ConnectionBar } from './components/ConnectionBar';
 import { Sidebar } from './components/Sidebar';
@@ -11,6 +12,7 @@ import { ConnectionStatus, LogEntry, McpTool, JsonRpcMessage, Language, Theme, T
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import { Github } from 'lucide-react';
 import { APP_VERSION, REPO_URL } from './constants';
+import { translations } from './utils/i18n';
 
 interface ToolState {
     argsJson: string;
@@ -212,11 +214,33 @@ const App: React.FC = () => {
           return;
       }
       setStatus(ConnectionStatus.ERROR);
+
+      const t = translations[lang];
+
+      // Heuristic for CORS/Network error
+      // TypeError is thrown by fetch for network errors (DNS, CORS, Offline) across all browsers.
+      // e.g. "TypeError: Failed to fetch" (Chrome), "TypeError: NetworkError..." (Firefox)
+      const isNetworkError = e instanceof TypeError && (
+          e.message.match(/Failed to fetch|NetworkError|Load failed|Network request failed/i)
+      );
+      
+      const isCorsLikely = isNetworkError && !proxyConfig.enabled;
+
+      const serializedErr = serializeError(e);
+      let summary = t.connectionFailed;
+      
+      if (isCorsLikely) {
+          summary = t.possibleCors;
+          if (typeof serializedErr === 'object') {
+              serializedErr.hint = t.corsHint;
+          }
+      }
+      
       addLog({ 
           type: 'error', 
           direction: 'local', 
-          summary: 'Connection Failed', 
-          details: serializeError(e), 
+          summary: summary, 
+          details: serializedErr, 
           meta: connectionContext.current 
       });
     }

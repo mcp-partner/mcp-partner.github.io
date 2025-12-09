@@ -592,14 +592,14 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
                     type="button"
                     onClick={() => setShowTransport(!showTransport)}
                     disabled={isConnected || isConnecting}
-                    className={`flex items-center gap-1.5 px-3 h-9 rounded-l-md border-y border-l border-r font-mono text-xs font-bold uppercase transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 focus:z-10 ${
+                    className={`flex items-center justify-between w-24 px-3 h-9 rounded-l-md border-y border-l border-r font-mono text-xs font-bold uppercase transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 focus:z-10 ${
                         isConnected
                         ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 border-gray-300 dark:border-gray-700'
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                 >
-                    {transport === 'sse' ? 'SSE' : 'STREAM'}
-                    <ChevronDown className="w-3 h-3 opacity-60" />
+                    <span>{transport === 'sse' ? 'SSE' : 'STREAM'}</span>
+                    <ChevronDown className="w-3 h-3 opacity-60 shrink-0" />
                 </button>
                 
                 {showTransport && (
