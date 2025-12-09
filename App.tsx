@@ -15,6 +15,13 @@ interface ToolState {
     result: { status: 'success' | 'error', data: any } | null;
 }
 
+interface ConnectionContext {
+    url: string;
+    proxyConfig: ProxyConfig;
+    headers: Record<string, string>;
+    transport: TransportType;
+}
+
 const App: React.FC = () => {
   const [status, setStatus] = useState<ConnectionStatus>(ConnectionStatus.DISCONNECTED);
   const [tools, setTools] = useState<McpTool[]>([]);
@@ -39,6 +46,9 @@ const App: React.FC = () => {
   // Client ref, initialized with default SSE but can be swapped
   const mcpClient = useRef<IMcpClient>(new SseMcpClient());
   const activeTransport = useRef<TransportType>('sse');
+  
+  // Store connection context to attach to logs
+  const connectionContext = useRef<ConnectionContext | null>(null);
 
   // Apply Theme & Persist
   useEffect(() => {
@@ -65,7 +75,7 @@ const App: React.FC = () => {
   };
 
   // Generic message handler for logging
-  const messageHandler = useCallback((msg: JsonRpcMessage) => {
+  const messageHandler = useCallback((msg: JsonRpcMessage, meta?: any) => {
         let summary = 'Unknown Message';
         let direction: 'in' | 'out' = 'in';
         let type: 'request' | 'response' | 'notification' | 'info' = 'info';
@@ -87,12 +97,22 @@ const App: React.FC = () => {
             type,
             direction,
             summary,
-            details: msg
+            details: msg,
+            // Attach both specific message metadata (like response headers) AND global connection config
+            meta: {
+                ...connectionContext.current,
+                ...meta
+            }
         });
   }, []);
 
   const errorHandler = useCallback((err: string) => {
-        addLog({ type: 'error', direction: 'local', summary: err });
+        addLog({ 
+            type: 'error', 
+            direction: 'local', 
+            summary: err, 
+            meta: connectionContext.current 
+        });
         setStatus(ConnectionStatus.ERROR);
   }, []);
 
@@ -109,6 +129,9 @@ const App: React.FC = () => {
 
 
   const handleConnect = async (url: string, proxyConfig: ProxyConfig, headers: Record<string, string>, transport: TransportType) => {
+    // Save connection context for logging
+    connectionContext.current = { url, proxyConfig, headers, transport };
+
     // 1. Check if we need to swap the client implementation
     if (activeTransport.current !== transport) {
         mcpClient.current.disconnect();
@@ -117,14 +140,6 @@ const App: React.FC = () => {
         } else {
             mcpClient.current = new SseMcpClient();
         }
-        // Re-attach listeners to the new instance
-        // IMPORTANT: We must NOT manually attach here if useEffect handles it, 
-        // but since we are swapping the INSTANCE inside a Ref, the useEffect might not re-run if it only depends on messageHandler/errorHandler.
-        // However, ref changes do not trigger re-renders.
-        // The safest way is to force a re-render or handle the subscription manually here.
-        // Actually, the useEffect above only runs on mount (or if handler changes). It closes over `mcpClient.current`.
-        // If `mcpClient.current` changes, the old handlers are still attached to the OLD instance (which is disconnected).
-        // We need to attach handlers to the NEW instance.
         
         mcpClient.current.onMessage(messageHandler);
         mcpClient.current.onError(errorHandler);
@@ -139,7 +154,8 @@ const App: React.FC = () => {
         details: { 
           ...(proxyConfig.enabled ? { proxy: proxyConfig.prefix } : {}),
           ...(Object.keys(headers).length > 0 ? { headers } : {})
-        }
+        },
+        meta: connectionContext.current
     });
     setTools([]);
     setToolStates({});
@@ -147,11 +163,16 @@ const App: React.FC = () => {
     try {
       await mcpClient.current.connect(url, proxyConfig, headers);
       setStatus(ConnectionStatus.CONNECTED);
-      addLog({ type: 'info', direction: 'local', summary: 'Connected.' });
+      addLog({ 
+          type: 'info', 
+          direction: 'local', 
+          summary: 'Connected.',
+          meta: connectionContext.current
+      });
       
       // SSE Client needs manual initialization flow, HTTP Client (SDK) handles it internally
       if (transport === 'sse') {
-          addLog({ type: 'info', direction: 'local', summary: 'Sending initialize...' });
+          addLog({ type: 'info', direction: 'local', summary: 'Sending initialize...', meta: connectionContext.current });
           const initResult = await mcpClient.current.sendRequest('initialize', {
               protocolVersion: '2024-11-05',
               capabilities: {},
@@ -160,10 +181,10 @@ const App: React.FC = () => {
                   version: '1.0.0'
               }
           });
-          addLog({ type: 'info', direction: 'in', summary: 'Initialized', details: initResult });
+          addLog({ type: 'info', direction: 'in', summary: 'Initialized', details: initResult, meta: connectionContext.current });
 
           // Send initialized notification
-          addLog({ type: 'info', direction: 'local', summary: 'Sending initialized notification...' });
+          addLog({ type: 'info', direction: 'local', summary: 'Sending initialized notification...', meta: connectionContext.current });
           await mcpClient.current.sendNotification('notifications/initialized');
       }
 
@@ -172,11 +193,11 @@ const App: React.FC = () => {
 
     } catch (e: any) {
       if (e.message === 'Connection aborted') {
-          addLog({ type: 'info', direction: 'local', summary: 'Connection cancelled' });
+          addLog({ type: 'info', direction: 'local', summary: 'Connection cancelled', meta: connectionContext.current });
           return;
       }
       setStatus(ConnectionStatus.ERROR);
-      addLog({ type: 'error', direction: 'local', summary: 'Connection Failed', details: e.message });
+      addLog({ type: 'error', direction: 'local', summary: 'Connection Failed', details: e.message, meta: connectionContext.current });
     }
   };
 
@@ -187,27 +208,19 @@ const App: React.FC = () => {
     setSelectedTool(null);
     setToolStates({});
     addLog({ type: 'info', direction: 'local', summary: 'Disconnected' });
+    connectionContext.current = null;
   };
 
   const fetchTools = async () => {
     setLoadingTools(true);
     try {
-        // SDK 'listTools' wrapper vs Manual 'tools/list'
-        // If using SDK, we might want to use client.listTools() if exposed, but our interface is generic sendRequest.
-        // The SDK's 'request' method handles the result schema parsing if we used it directly, 
-        // but here we just expect the raw JSON-RPC response result.
         const res = await mcpClient.current.sendRequest('tools/list');
-        
-        // Handle SDK result structure vs Raw JSON-RPC result structure
-        // The SDK Client.request returns the result object directly.
-        // Raw SSE returns the 'result' property of the response.
-        
         const toolsList = res.tools || [];
         setTools(toolsList);
-        addLog({ type: 'info', direction: 'in', summary: `Loaded ${toolsList.length} tools` });
+        addLog({ type: 'info', direction: 'in', summary: `Loaded ${toolsList.length} tools`, meta: connectionContext.current });
         
     } catch (e: any) {
-        addLog({ type: 'error', direction: 'in', summary: 'Failed to list tools', details: e });
+        addLog({ type: 'error', direction: 'in', summary: 'Failed to list tools', details: e, meta: connectionContext.current });
     } finally {
         setLoadingTools(false);
     }
@@ -237,7 +250,7 @@ const App: React.FC = () => {
             name: selectedTool.name,
             arguments: args
         });
-        addLog({ type: 'response', direction: 'in', summary: `Tool Executed: ${selectedTool.name}`, details: result });
+        addLog({ type: 'response', direction: 'in', summary: `Tool Executed: ${selectedTool.name}`, details: result, meta: connectionContext.current });
         
         setToolStates(prev => ({
             ...prev,
@@ -247,7 +260,7 @@ const App: React.FC = () => {
             }
         }));
     } catch (e: any) {
-        addLog({ type: 'error', direction: 'in', summary: `Tool Execution Failed`, details: e });
+        addLog({ type: 'error', direction: 'in', summary: `Tool Execution Failed`, details: e, meta: connectionContext.current });
         
         setToolStates(prev => ({
             ...prev,
@@ -318,7 +331,7 @@ const App: React.FC = () => {
       <footer className="h-7 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 text-[11px] text-gray-500 dark:text-gray-500 shrink-0 select-none shadow-[0_-1px_3px_rgba(0,0,0,0.02)] z-50">
           <div className="flex items-center gap-4">
             <span className="font-mono bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-[10px] tracking-wide text-gray-600 dark:text-gray-400">
-            v0.1.6-DEBUG
+            v0.1.7-DEBUG
             </span>
             <span>
               Author: <a href="https://github.com/Ericwyn" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">@Ericwyn</a>

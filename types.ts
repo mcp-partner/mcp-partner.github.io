@@ -48,6 +48,7 @@ export interface LogEntry {
   direction: 'in' | 'out' | 'local';
   summary: string;
   details?: any;
+  meta?: any; // Extra context like headers, proxy info, status codes
 }
 
 export enum ConnectionStatus {

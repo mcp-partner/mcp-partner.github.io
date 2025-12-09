@@ -1,6 +1,6 @@
 import { JsonRpcMessage } from '../types';
 
-export type MessageHandler = (message: JsonRpcMessage) => void;
+export type MessageHandler = (message: JsonRpcMessage, meta?: any) => void;
 export type ErrorHandler = (error: string) => void;
 export type Unsubscribe = () => void;
 

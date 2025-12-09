@@ -1,4 +1,5 @@
 
+
 import { JsonRpcMessage, JsonRpcResponse, JsonRpcRequest, JsonRpcNotification } from '../types';
 import { IMcpClient, ProxyConfig, MessageHandler, ErrorHandler, Unsubscribe } from './mcpClient';
 
@@ -152,7 +153,7 @@ export class SseMcpClient implements IMcpClient {
                       try {
                           if (data) {
                             const json = JSON.parse(data);
-                            this.handleIncomingMessage(json);
+                            this.handleIncomingMessage(json, { source: 'sse' });
                           }
                       } catch (e) {
                           console.error("Failed to parse SSE message JSON", e, data);
@@ -202,8 +203,8 @@ export class SseMcpClient implements IMcpClient {
     this.errorHandlers.forEach(h => h(msg));
   }
 
-  private handleIncomingMessage(data: JsonRpcMessage) {
-    this.messageHandlers.forEach(h => h(data));
+  private handleIncomingMessage(data: JsonRpcMessage, meta?: any) {
+    this.messageHandlers.forEach(h => h(data, meta));
 
     if ('id' in data && data.id !== undefined && data.id !== null) {
       const pending = this.pendingRequests.get(data.id);

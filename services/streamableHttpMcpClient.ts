@@ -1,4 +1,5 @@
 
+
 import { IMcpClient, ProxyConfig, MessageHandler, ErrorHandler, Unsubscribe } from './mcpClient';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
@@ -119,6 +120,10 @@ class CustomStreamableTransport implements Transport {
                 throw new Error(`POST Error ${response.status}: ${text}`);
             }
 
+            // Extract headers to pass to logger
+            const responseHeaders: Record<string, string> = {};
+            response.headers.forEach((val, key) => responseHeaders[key] = val);
+
             // Critical fix: Handle the response body.
             // The server might return the JSON-RPC response directly in the POST response.
             const contentType = response.headers.get('content-type') || '';
@@ -129,7 +134,10 @@ class CustomStreamableTransport implements Transport {
                 if (text && text.trim().length > 0) {
                     try {
                         const data = JSON.parse(text);
-                        this.handleIncoming(data);
+                        this.handleIncoming(data, { 
+                            responseHeaders, 
+                            statusCode: response.status 
+                        });
                     } catch (e) {
                         console.error("Failed to parse JSON response from POST", e);
                     }
@@ -156,17 +164,17 @@ class CustomStreamableTransport implements Transport {
         if (this.onclose) this.onclose();
     }
 
-    private handleIncoming(data: any) {
+    private handleIncoming(data: any, meta?: any) {
         if (Array.isArray(data)) {
-            data.forEach(d => this.processMessage(d));
+            data.forEach(d => this.processMessage(d, meta));
         } else {
-            this.processMessage(data);
+            this.processMessage(data, meta);
         }
     }
 
-    private processMessage(msg: any) {
-        // Log incoming message to UI
-        this.messageLogger(msg);
+    private processMessage(msg: any, meta?: any) {
+        // Log incoming message to UI with extra metadata
+        this.messageLogger(msg, meta);
         // Pass to SDK Client
         if (this.onmessage) this.onmessage(msg);
     }
@@ -228,7 +236,7 @@ class CustomStreamableTransport implements Transport {
         if (eventType === 'message' && data) {
             try {
                 const json = JSON.parse(data);
-                this.processMessage(json);
+                this.processMessage(json, { source: 'sse-stream' });
             } catch (e) {
                 console.error('Failed to parse SSE message', e);
             }
@@ -262,7 +270,7 @@ export class StreamableHttpMcpClient implements IMcpClient {
                 this.transport = new CustomStreamableTransport(
                     finalUrl, 
                     headers, 
-                    (msg) => this.messageHandlers.forEach(h => h(msg))
+                    (msg, meta) => this.messageHandlers.forEach(h => h(msg, meta))
                 );
 
                 // Handle transport errors (like stream disconnection)
