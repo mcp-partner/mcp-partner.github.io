@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { ConnectionStatus, Language, Theme, McpPartnerConfig, McpServerConfig, McpExtensionConfig, McpServerType } from '../types';
-import { Plug, Unplug, Loader2, Moon, Sun, Settings, Globe, List, Plus, Trash2, History, Save, MoreVertical, Monitor, Languages, Shield, ShieldCheck, ArrowRightLeft, Copy, Check, X, FileJson, Pencil, HardDrive, ChevronDown, Radio } from 'lucide-react';
+import { Plug, Unplug, Loader2, Moon, Sun, Settings, Globe, List, Plus, Trash2, History, Save, MoreVertical, Monitor, Languages, Shield, ShieldCheck, ArrowRightLeft, Copy, Check, X, FileJson, Pencil, HardDrive, ChevronDown } from 'lucide-react';
 import { translations } from '../utils/i18n';
 
 interface ConnectionBarProps {
@@ -41,7 +41,6 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
   const [showHeaders, setShowHeaders] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showGlobalMenu, setShowGlobalMenu] = useState(false);
-  const [showProtocolSettings, setShowProtocolSettings] = useState(false);
   
   // Headers state
   const [headers, setHeaders] = useState<HeaderItem[]>([]);
@@ -72,7 +71,6 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
   const headersRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<HTMLDivElement>(null);
   const globalMenuRef = useRef<HTMLDivElement>(null);
-  const protocolRef = useRef<HTMLDivElement>(null);
 
   // Track previous status for auto-save trigger
   const prevStatusRef = useRef(status);
@@ -213,7 +211,6 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
       if (headersRef.current && !headersRef.current.contains(event.target as Node)) setShowHeaders(false);
       if (historyRef.current && !historyRef.current.contains(event.target as Node)) setShowHistory(false);
       if (globalMenuRef.current && !globalMenuRef.current.contains(event.target as Node)) setShowGlobalMenu(false);
-      if (protocolRef.current && !protocolRef.current.contains(event.target as Node)) setShowProtocolSettings(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
@@ -333,6 +330,11 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
       setServerRegistry(newServers);
       setExtensionRegistry(newExtensions);
       setEditingId(null);
+  };
+
+  const toggleProtocol = () => {
+      if (isConnected || isConnecting) return;
+      setProtocol(prev => prev === 'sse' ? 'streamable_http' : 'sse');
   };
 
   // --- App Config Import / Export ---
@@ -545,62 +547,26 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
         <div className="relative flex-1 group min-w-0 flex items-center gap-2">
            <div className="relative flex-1">
                 {/* Left: Protocol Selector */}
-                <div className="absolute inset-y-0 left-0 flex items-center z-20">
+                <div className="absolute inset-y-0 left-0 flex items-center">
                     <button 
                         type="button"
-                        onClick={() => !isConnected && !isConnecting && setShowProtocolSettings(!showProtocolSettings)}
+                        onClick={toggleProtocol}
                         disabled={isConnected || isConnecting}
                         className={`flex items-center gap-1 px-2.5 py-1 h-[80%] my-auto ml-1 rounded text-[10px] font-bold font-mono transition-colors tracking-wide ${
                             isConnected 
                             ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 cursor-default' 
                             : 'text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer'
                         }`}
-                        title={t.protocol}
+                        title="Switch Protocol"
                     >
                          {protocol === 'sse' ? 'SSE' : 'STREAM'}
-                         {!isConnected && !isConnecting && <ChevronDown className="w-3 h-3 opacity-50" />}
                     </button>
-                    
-                    {/* Protocol Settings Popover */}
-                    {showProtocolSettings && (
-                        <div ref={protocolRef} className="absolute left-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 p-3">
-                             <h3 className="font-semibold text-xs text-gray-500 uppercase tracking-wider mb-2">{t.protocol}</h3>
-                             <div className="space-y-1">
-                                <label className={`flex items-start gap-3 p-2 rounded cursor-pointer transition-colors ${protocol === 'sse' ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
-                                    <input 
-                                        type="radio" 
-                                        name="protocol" 
-                                        className="mt-1"
-                                        checked={protocol === 'sse'} 
-                                        onChange={() => { setProtocol('sse'); setShowProtocolSettings(false); }}
-                                    />
-                                    <div>
-                                        <div className="text-sm font-medium text-gray-900 dark:text-gray-200">SSE</div>
-                                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t.sseDesc}</div>
-                                    </div>
-                                </label>
-                                <label className={`flex items-start gap-3 p-2 rounded cursor-pointer transition-colors ${protocol === 'streamable_http' ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
-                                    <input 
-                                        type="radio" 
-                                        name="protocol" 
-                                        className="mt-1"
-                                        checked={protocol === 'streamable_http'} 
-                                        onChange={() => { setProtocol('streamable_http'); setShowProtocolSettings(false); }}
-                                    />
-                                    <div>
-                                        <div className="text-sm font-medium text-gray-900 dark:text-gray-200">STREAM</div>
-                                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t.httpDesc}</div>
-                                    </div>
-                                </label>
-                             </div>
-                        </div>
-                    )}
                 </div>
 
                 <input 
                     type="text" 
                     placeholder={protocol === 'sse' ? t.ssePlaceholder : t.httpPlaceholder}
-                    className={`w-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-200 text-sm rounded-md h-9 pl-24 pr-20 transition-all font-mono focus:outline-none ${
+                    className={`w-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-200 text-sm rounded-md h-9 pl-20 pr-20 transition-all font-mono focus:outline-none ${
                         isConnected 
                         ? 'border border-green-500 dark:border-green-400 ring-1 ring-green-500/20 shadow-[0_0_8px_rgba(34,197,94,0.1)] disabled:opacity-100' 
                         : 'border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50'

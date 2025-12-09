@@ -88,9 +88,6 @@ export const translations = {
     singleConfigDesc: 'Edit the JSON to modify the current address bar and headers. Changes are applied immediately but not saved to the registry until connected.',
     manageAllConfigs: 'Manage All Servers',
     loadConfig: 'Load to UI',
-    protocol: 'Transport Protocol',
-    sseDesc: 'Server-Sent Events (Standard)',
-    httpDesc: 'Streamable HTTP (Stateless)',
   },
   zh: {
     appTitle: 'MCP 调试助手',
@@ -177,8 +174,5 @@ export const translations = {
     singleConfigDesc: '修改 JSON 并点击加载，配置将应用到当前输入框（URL 和请求头），但不会自动保存到历史记录。',
     manageAllConfigs: '管理全部配置',
     loadConfig: '应用到输入框',
-    protocol: '传输协议',
-    sseDesc: 'Server-Sent Events (标准)',
-    httpDesc: 'Streamable HTTP (无状态)',
   }
 };
