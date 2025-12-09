@@ -1,7 +1,6 @@
 
-
 import React, { useEffect, useState, useMemo } from 'react';
-import { McpTool, McpResource, McpPrompt, Language } from '../types';
+import { McpTool, McpResource, McpPrompt, Language, ConnectionStatus } from '../types';
 import { Play, Code2, Info, Copy, Check, FileText, Braces, Loader2, Terminal, Eraser, X, Eye, FileJson, History, Database } from 'lucide-react';
 import { translations } from '../utils/i18n';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
@@ -9,6 +8,7 @@ import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 interface RequestPanelProps {
   item: McpTool | McpResource | McpPrompt | null;
   type: 'tools' | 'resources' | 'prompts';
+  status: ConnectionStatus;
   
   onExecute: (args: any) => void; // for tools and prompts
   onReadResource: (uri: string) => void; // for resources
@@ -29,6 +29,7 @@ interface RequestPanelProps {
 export const RequestPanel: React.FC<RequestPanelProps> = ({ 
     item, 
     type,
+    status,
     onExecute, 
     onReadResource,
     isExecuting, 
@@ -48,6 +49,7 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
   const [showDescModal, setShowDescModal] = useState(false);
 
   const t = translations[lang];
+  const isConnected = status === ConnectionStatus.CONNECTED;
 
   // Sync local state when the selected item changes (restore persisted args)
   useEffect(() => {
@@ -159,40 +161,51 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-500 select-none transition-colors duration-200">
         <Code2 className="w-16 h-16 mb-6 opacity-20" />
-        <p className="text-lg font-medium mb-8">{t.selectItem}</p>
         
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4">
-            <button 
-                onClick={onImportConfig}
-                className="flex flex-col items-center justify-center gap-3 p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all w-40 group"
-            >
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
-                    <FileJson className="w-6 h-6" />
-                </div>
-                <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 text-center">{t.importConfig}</span>
-            </button>
+        {isConnected ? (
+            <p className="text-lg font-medium mb-8 text-center px-4 max-w-md">
+                {t.selectItem}
+            </p>
+        ) : (
+            <div className="flex flex-col items-center w-full max-w-3xl px-4">
+                <p className="text-lg font-medium mb-8 text-center">
+                    {t.startPrompt}
+                </p>
+                
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
+                    <button 
+                        onClick={onImportConfig}
+                        className="flex flex-col items-center justify-center gap-3 p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all w-40 h-32 group"
+                    >
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
+                            <FileJson className="w-6 h-6" />
+                        </div>
+                        <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 text-center">{t.importConfig}</span>
+                    </button>
 
-            <button 
-                onClick={onLoadRecent}
-                className="flex flex-col items-center justify-center gap-3 p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-green-300 dark:hover:border-green-700 transition-all w-40 group"
-            >
-                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-full text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform">
-                    <History className="w-6 h-6" />
-                </div>
-                <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 text-center">{t.loadRecent}</span>
-            </button>
+                    <button 
+                        onClick={onLoadRecent}
+                        className="flex flex-col items-center justify-center gap-3 p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-green-300 dark:hover:border-green-700 transition-all w-40 h-32 group"
+                    >
+                        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-full text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform">
+                            <History className="w-6 h-6" />
+                        </div>
+                        <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 text-center">{t.loadRecent}</span>
+                    </button>
 
-            <button 
-                onClick={onViewAllConfigs}
-                className="flex flex-col items-center justify-center gap-3 p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-purple-300 dark:hover:border-purple-700 transition-all w-40 group"
-            >
-                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-full text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
-                    <Database className="w-6 h-6" />
+                    <button 
+                        onClick={onViewAllConfigs}
+                        className="flex flex-col items-center justify-center gap-3 p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-purple-300 dark:hover:border-purple-700 transition-all w-40 h-32 group"
+                    >
+                        <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-full text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
+                            <Database className="w-6 h-6" />
+                        </div>
+                        <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 text-center">{t.viewAllServers}</span>
+                    </button>
                 </div>
-                <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 text-center">{t.viewAllServers}</span>
-            </button>
-        </div>
+            </div>
+        )}
       </div>
     );
   }

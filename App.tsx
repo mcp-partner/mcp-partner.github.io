@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ConnectionBar, ConnectionBarRef } from './components/ConnectionBar';
 import { Sidebar } from './components/Sidebar';
@@ -552,6 +551,7 @@ const App: React.FC = () => {
                          <RequestPanel 
                             item={currentItem}
                             type={activeTab}
+                            status={status}
                             onExecute={handleExecute}
                             onReadResource={handleReadResource}
                             isExecuting={isExecuting}

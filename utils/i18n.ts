@@ -1,5 +1,6 @@
 
 
+
 import { Language } from '../types';
 
 export const translations = {
@@ -20,7 +21,7 @@ export const translations = {
     noMatchingItems: 'No matching items.',
     itemsLoaded: 'Items Loaded',
     fetching: 'Fetching capabilities...',
-    selectItem: 'Select an item from the sidebar to interact.',
+    selectItem: 'Please select an item from the sidebar to interact.',
     toolCall: 'tools/call',
     runTool: 'Run Tool',
     getPrompt: 'Get Prompt',
@@ -118,13 +119,14 @@ export const translations = {
     noArgsTool: 'This tool takes no arguments.',
     noArgsPrompt: 'This prompt takes no arguments.',
     noDescription: 'No description',
-    // New Translations
     welcome: 'Welcome to MCP Partner',
     importConfig: 'Import Config',
     loadRecent: 'Load Recent',
     viewAllServers: 'View All Servers',
     lastUsed: 'Last used',
-    copyConfig: 'Copy Config'
+    copyConfig: 'Copy Config',
+    startPrompt: 'Connect to a server or load a configuration to start.',
+    selectItemDesc: 'Choose a Tool, Resource, or Prompt to begin.'
   },
   zh: {
     appTitle: 'MCP 调试助手',
@@ -241,12 +243,13 @@ export const translations = {
     noArgsTool: '该工具无需参数。',
     noArgsPrompt: '该提示词无需参数。',
     noDescription: '暂无描述',
-    // New Translations
     welcome: '欢迎使用 MCP Partner',
     importConfig: '导入配置',
     loadRecent: '加载最近配置',
     viewAllServers: '查看所有服务',
     lastUsed: '上次使用',
-    copyConfig: '复制配置'
+    copyConfig: '复制配置',
+    startPrompt: '请连接服务器或从下方选择一项以开始。',
+    selectItemDesc: '选择工具、资源或提示词以开始。'
   }
 };
