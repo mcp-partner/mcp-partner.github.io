@@ -224,6 +224,61 @@
                         <strong>使用 Pancors:</strong> 对于频繁的本地开发，推荐运行本地代理工具如 <a href="https://github.com/Ericwyn/pancors" target="_blank" class="text-blue-600 underline">pancors</a>。
                     </li>
                 </ol>
+
+
+                <h3 class="text-xl font-bold mb-3">服务器端 CORS 配置</h3>
+                <p>如果您是 MCP 服务器的开发者，建议在服务器端正确配置 CORS 响应头：</p>
+                <div class="bg-slate-100 rounded-lg p-4 mb-6">
+                    <pre class="text-sm"><code>// Go 语言示例
+w.Header().Set("Access-Control-Allow-Origin", "*")
+w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+w.Header().Set("Access-Control-Allow-Headers", "*")
+w.Header().Set("Access-Control-Expose-Headers", "*")
+w.Header().Set("Access-Control-Allow-Credentials", "true")</code></pre>
+                </div>
+
+                <h4 class="text-lg font-bold mb-3">Header 作用说明：</h4>
+                <div class="space-y-3 mb-6">
+                    <div class="flex items-start gap-3">
+                        <div>
+                            <code class="font-semibold">Access-Control-Allow-Origin: *</code>
+                            <p class="text-sm text-slate-600 mt-1">允许任何域名的前端页面访问您的服务器（必需）</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div>
+                            <code class="font-semibold">Access-Control-Allow-Methods</code>
+                            <p class="text-sm text-slate-600 mt-1">允许的 HTTP 方法，MCP 主要使用 GET (SSE) 和 POST</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div>
+                            <code class="font-semibold">Access-Control-Allow-Headers: *</code>
+                            <p class="text-sm text-slate-600 mt-1">允许前端发送自定义 header（如 Content-Type、Mcp-Session-Id）</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div>
+                            <code class="font-semibold">Access-Control-Expose-Headers: *</code>
+                            <p class="text-sm text-slate-600 mt-1">允许前端读取响应头中的 mcp-session-id（关键）</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div>
+                            <code class="font-semibold">Access-Control-Allow-Credentials: true</code>
+                            <p class="text-sm text-slate-600 mt-1">允许发送认证信息（可选，仅在需要认证时）</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="text-lg font-bold mb-3">连接失败排查步骤：</h4>
+                <ol class="list-decimal pl-5 space-y-2 text-slate-600 mb-6">
+                    <li><strong>检查浏览器控制台错误</strong> - 打开开发者工具查看 Console 和 Network 标签页</li>
+                    <li><strong>验证预检请求</strong> - 检查 OPTIONS 请求的响应头是否包含 CORS headers</li>
+                    <li><strong>测试最小配置</strong> - 先用最基本的三个 header 测试连接</li>
+                    <li><strong>检查 Session ID 传递</strong> - 查看控制台是否有 `[HTTP] Session ID captured:` 日志</li>
+                </ol>
+
             </section>
 
             <footer class="mt-20 pt-8 border-t border-slate-200 text-center text-slate-500 text-sm">
@@ -343,6 +398,59 @@
                     <li>
                         <strong>Use Pancors:</strong> For heavy local development, run a local proxy like <a href="https://github.com/Ericwyn/pancors" target="_blank" class="text-blue-600 underline">pancors</a>.
                     </li>
+                </ol>
+
+                <h3 class="text-xl font-bold mb-3">Server-Side CORS Configuration</h3>
+                <p>If you're developing an MCP server, it's recommended to properly configure CORS response headers:</p>
+                <div class="bg-slate-100 rounded-lg p-4 mb-6">
+                    <pre class="text-sm"><code>// Go language example
+w.Header().Set("Access-Control-Allow-Origin", "*")
+w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+w.Header().Set("Access-Control-Allow-Headers", "*")
+w.Header().Set("Access-Control-Expose-Headers", "*")
+w.Header().Set("Access-Control-Allow-Credentials", "true")</code></pre>
+                </div>
+
+                <h4 class="text-lg font-bold mb-3">Header Explanations:</h4>
+                <div class="space-y-3 mb-6">
+                    <div class="flex items-start gap-3">
+                        <div>
+                            <code class="font-semibold">Access-Control-Allow-Origin: *</code>
+                            <p class="text-sm text-slate-600 mt-1">Allows any domain's frontend to access your server (essential)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div>
+                            <code class="font-semibold">Access-Control-Allow-Methods</code>
+                            <p class="text-sm text-slate-600 mt-1">Allowed HTTP methods - MCP mainly uses GET (SSE) and POST</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div>
+                            <code class="font-semibold">Access-Control-Allow-Headers: *</code>
+                            <p class="text-sm text-slate-600 mt-1">Allows frontend to send custom headers (Content-Type, Mcp-Session-Id)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div>
+                            <code class="font-semibold">Access-Control-Expose-Headers: *</code>
+                            <p class="text-sm text-slate-600 mt-1">Allows frontend to read mcp-session-id from response headers (critical)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div>
+                            <code class="font-semibold">Access-Control-Allow-Credentials: true</code>
+                            <p class="text-sm text-slate-600 mt-1">Allows sending authentication credentials (optional, only when needed)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="text-lg font-bold mb-3">Troubleshooting Connection Issues:</h4>
+                <ol class="list-decimal pl-5 space-y-2 text-slate-600 mb-6">
+                    <li><strong>Check Browser Console</strong> - Open DevTools to view Console and Network tabs</li>
+                    <li><strong>Verify Preflight Requests</strong> - Check if OPTIONS responses include CORS headers</li>
+                    <li><strong>Test Minimal Configuration</strong> - Start with just the three essential headers</li>
+                    <li><strong>Check Session ID Transmission</strong> - Look for `[HTTP] Session ID captured:` in console</li>
                 </ol>
             </section>
 

@@ -50,6 +50,69 @@
 2. **公共代理**: 使用公共代理服务，例如 `https://corsproxy.io/?url=`。
 3. **Pancors (本地推荐)**: 自己本地启动 [Pancors](https://github.com/Ericwyn/pancors)。
 
+### 服务器端 CORS 配置
+
+如果您是 MCP 服务器的开发者，建议在服务器端正确配置 CORS 响应头，这样网页客户端就可以直接连接，无需使用代理。以下是一个完整的 CORS 配置示例：
+
+```go
+// Go 语言示例
+w.Header().Set("Access-Control-Allow-Origin", "*")
+w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+w.Header().Set("Access-Control-Allow-Headers", "*")
+w.Header().Set("Access-Control-Expose-Headers", "*")
+w.Header().Set("Access-Control-Allow-Credentials", "true")
+```
+
+#### 各个 Header 的作用说明：
+
+1. **`Access-Control-Allow-Origin: *`**
+   - **作用**: 允许任何域名的前端页面访问您的服务器
+   - **必要性**: ⭐⭐⭐⭐⭐ 必需，没有这个 header 浏览器会阻止跨域请求
+
+2. **`Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS`**
+   - **作用**: 指定允许的 HTTP 方法
+   - **必要性**: ⭐⭐⭐ 重要，MCP 主要使用 GET (SSE) 和 POST 方法
+
+3. **`Access-Control-Allow-Headers: *`**
+   - **作用**: 允许前端在请求中携带任意自定义 header
+   - **必要性**: ⭐⭐⭐⭐ 重要，MCP 客户端需要发送 `Content-Type` 和 `Mcp-Session-Id` 等 header
+
+4. **`Access-Control-Expose-Headers: *`**
+   - **作用**: 允许前端 JavaScript 读取响应中的所有 header
+   - **必要性**: ⭐⭐⭐⭐ 关键，MCP 协议需要读取 `mcp-session-id` 响应头
+
+5. **`Access-Control-Allow-Credentials: true`**
+   - **作用**: 允许前端发送携带认证信息的请求（如 cookies）
+   - **必要性**: ⭐⭐ 可选，如果您的 MCP 服务器使用认证则需要
+
+#### 连接失败排查步骤：
+
+1. **检查浏览器控制台错误**
+   - 打开开发者工具 (F12)
+   - 查看 Console 和 Network 标签页
+   - 寻找 CORS 相关错误信息
+
+2. **验证预检请求 (OPTIONS)**
+   - 在 Network 标签页中查看是否有 OPTIONS 请求
+   - 检查 OPTIONS 请求的响应头是否包含上述 CORS headers
+
+3. **测试最小配置**
+   - 如果不确定哪些 header 必需，可以先用最小配置测试：
+   ```go
+   w.Header().Set("Access-Control-Allow-Origin", "*")
+   w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Mcp-Session-Id")
+   w.Header().Set("Access-Control-Expose-Headers", "Mcp-Session-Id")
+   ```
+
+4. **检查 Session ID 传递**
+   - MCP 协议依赖 `mcp-session-id` header 来维持会话
+   - 确保 `Access-Control-Expose-Headers` 包含 `Mcp-Session-Id`
+   - 在客户端控制台查看是否有 `[HTTP] Session ID captured:` 日志
+
+5. **临时解决方案**
+   - 如果无法修改服务器配置，可以使用 MCP Partner 的代理功能
+   - 代理会自动添加必要的 CORS headers
+
 
 ## 使用说明
 

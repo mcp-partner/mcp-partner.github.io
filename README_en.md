@@ -52,6 +52,69 @@ To solve this, MCP Partner supports 3 proxy methods (configurable via the Shield
    - Optimized support included (automatically handles `OPTIONS` pre-flight requests).
    - Recommended for local development and stability.
 
+### Server-Side CORS Configuration
+
+If you're developing an MCP server, it's recommended to properly configure CORS response headers so that web clients can connect directly without using a proxy. Here's a complete CORS configuration example:
+
+```go
+// Go language example
+w.Header().Set("Access-Control-Allow-Origin", "*")
+w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+w.Header().Set("Access-Control-Allow-Headers", "*")
+w.Header().Set("Access-Control-Expose-Headers", "*")
+w.Header().Set("Access-Control-Allow-Credentials", "true")
+```
+
+#### Header Explanations:
+
+1. **`Access-Control-Allow-Origin: *`**
+   - **Purpose**: Allows any domain's frontend page to access your server
+   - **Importance**: ⭐⭐⭐⭐⭐ Essential - browsers will block cross-origin requests without this header
+
+2. **`Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS`**
+   - **Purpose**: Specifies which HTTP methods are allowed
+   - **Importance**: ⭐⭐⭐ Important - MCP mainly uses GET (for SSE) and POST methods
+
+3. **`Access-Control-Allow-Headers: *`**
+   - **Purpose**: Allows frontend to send any custom headers in requests
+   - **Importance**: ⭐⭐⭐⭐ Important - MCP clients need to send headers like `Content-Type` and `Mcp-Session-Id`
+
+4. **`Access-Control-Expose-Headers: *`**
+   - **Purpose**: Allows frontend JavaScript to read all response headers
+   - **Importance**: ⭐⭐⭐⭐ Critical - MCP protocol needs to read the `mcp-session-id` response header
+
+5. **`Access-Control-Allow-Credentials: true`**
+   - **Purpose**: Allows frontend to send requests with authentication credentials (like cookies)
+   - **Importance**: ⭐⭐ Optional - only needed if your MCP server uses authentication
+
+#### Troubleshooting Connection Issues:
+
+1. **Check Browser Console Errors**
+   - Open Developer Tools (F12)
+   - Check Console and Network tabs
+   - Look for CORS-related error messages
+
+2. **Verify Preflight Requests (OPTIONS)**
+   - In the Network tab, check for OPTIONS requests
+   - Ensure OPTIONS responses include the CORS headers mentioned above
+
+3. **Test Minimal Configuration**
+   - If unsure which headers are required, test with this minimal set:
+   ```go
+   w.Header().Set("Access-Control-Allow-Origin", "*")
+   w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Mcp-Session-Id")
+   w.Header().Set("Access-Control-Expose-Headers", "Mcp-Session-Id")
+   ```
+
+4. **Check Session ID Transmission**
+   - MCP protocol relies on the `mcp-session-id` header for session management
+   - Ensure `Access-Control-Expose-Headers` includes `Mcp-Session-Id`
+   - Check client console for `[HTTP] Session ID captured:` logs
+
+5. **Temporary Workaround**
+   - If you cannot modify server configuration, use MCP Partner's proxy feature
+   - The proxy automatically adds necessary CORS headers
+
 ## Usage
 
 1. Open the application.

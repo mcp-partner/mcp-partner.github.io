@@ -2,7 +2,7 @@
 
 import { IMcpClient, ProxyConfig, MessageHandler, ErrorHandler, Unsubscribe } from './mcpClient';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { ListToolsResultSchema, CallToolResultSchema, ListResourcesResultSchema, ListPromptsResultSchema, GetPromptResultSchema, ReadResourceResultSchema } from '@modelcontextprotocol/sdk/types.js';
+import { InitializeResultSchema, InitializedNotificationSchema, ListToolsResultSchema, CallToolResultSchema, ListResourcesResultSchema, ListPromptsResultSchema, GetPromptResultSchema, ReadResourceResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { JsonRpcMessage } from '../types';
 import { z } from 'zod';
@@ -97,7 +97,7 @@ class CustomStreamableTransport implements Transport {
         for (const [key, value] of responseHeaders.entries()) {
             if (key.toLowerCase() === 'mcp-session-id') {
                 this.sessionId = value;
-                // console.log('[HTTP] Session ID captured:', value);
+                console.log('[HTTP] Session ID captured:', value);
                 return value;
             }
         }
@@ -337,6 +337,12 @@ export class StreamableHttpMcpClient implements IMcpClient {
         // Map generic RPC calls to SDK typed methods where possible
         // Note: The SDK's client.request() handles strict schema validation.
         switch (method) {
+            case 'initialize':
+                schema = InitializeResultSchema;
+                break;
+            case 'notifications/initialized':
+                schema = InitializedNotificationSchema;
+                break;
             case 'tools/list':
                 schema = ListToolsResultSchema;
                 break;
