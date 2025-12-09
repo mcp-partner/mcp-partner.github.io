@@ -15,6 +15,9 @@ class CustomStreamableTransport implements Transport {
     private headers: Record<string, string>;
     private abortController: AbortController | null = null;
     private messageLogger: MessageHandler;
+    
+    // Changed to public to match Transport interface requirements
+    public sessionId?: string;
 
     public onclose?: () => void;
     public onerror?: (error: Error) => void;
@@ -28,6 +31,7 @@ class CustomStreamableTransport implements Transport {
 
     async start(): Promise<void> {
         this.abortController = new AbortController();
+        this.sessionId = undefined;
         
         try {
             // Attempt to open SSE stream via GET as per spec "Listening for Messages from the Server"
@@ -76,18 +80,30 @@ class CustomStreamableTransport implements Transport {
     async send(message: any): Promise<void> {
         this.messageLogger(message); // Log outgoing message
         
+        const reqHeaders: Record<string, string> = {
+            'Content-Type': 'application/json',
+            // Spec requires Accept header for both JSON and SSE
+            'Accept': 'application/json, text/event-stream',
+            ...this.headers
+        };
+
+        if (this.sessionId) {
+            reqHeaders['Mcp-Session-Id'] = this.sessionId;
+        }
+
         try {
             const response = await fetch(this.url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Spec requires Accept header for both JSON and SSE
-                    'Accept': 'application/json, text/event-stream',
-                    ...this.headers
-                },
+                headers: reqHeaders,
                 body: JSON.stringify(message),
                 signal: this.abortController?.signal
             });
+
+            // Capture Session ID if presented
+            const newSessionId = response.headers.get('Mcp-Session-Id');
+            if (newSessionId) {
+                this.sessionId = newSessionId;
+            }
 
             if (!response.ok) {
                 const text = await response.text();

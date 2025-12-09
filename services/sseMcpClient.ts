@@ -12,6 +12,7 @@ export class SseMcpClient implements IMcpClient {
   private proxyConfig: ProxyConfig = { enabled: false, prefix: '' };
   private originalSseUrl: string = '';
   private headers: Record<string, string> = {};
+  private sessionId: string | null = null;
 
   constructor() {}
 
@@ -21,6 +22,7 @@ export class SseMcpClient implements IMcpClient {
         this.proxyConfig = proxyConfig;
         this.originalSseUrl = sseUrl;
         this.headers = headers;
+        this.sessionId = null;
 
         // Close existing connection if any
         this.disconnect();
@@ -171,6 +173,7 @@ export class SseMcpClient implements IMcpClient {
     this.pendingRequests.clear();
     this.messageHandlers = [];
     this.errorHandlers = [];
+    this.sessionId = null;
   }
 
   onMessage(handler: MessageHandler): Unsubscribe {
@@ -233,14 +236,24 @@ export class SseMcpClient implements IMcpClient {
     });
 
     try {
-      const res = await fetch(this.postUrl, {
-        method: 'POST',
-        headers: {
+      const reqHeaders: Record<string, string> = {
           'Content-Type': 'application/json', 
           ...this.headers 
-        },
+      };
+      if (this.sessionId) {
+          reqHeaders['Mcp-Session-Id'] = this.sessionId;
+      }
+
+      const res = await fetch(this.postUrl, {
+        method: 'POST',
+        headers: reqHeaders,
         body: JSON.stringify(request)
       });
+
+      const sessId = res.headers.get('Mcp-Session-Id');
+      if (sessId) {
+          this.sessionId = sessId;
+      }
 
       if (!res.ok) {
         const text = await res.text();
@@ -269,14 +282,24 @@ export class SseMcpClient implements IMcpClient {
     this.messageHandlers.forEach(h => h(notification));
 
     try {
-      const res = await fetch(this.postUrl, {
-        method: 'POST',
-        headers: {
+      const reqHeaders: Record<string, string> = {
           'Content-Type': 'application/json',
           ...this.headers 
-        },
+      };
+      if (this.sessionId) {
+          reqHeaders['Mcp-Session-Id'] = this.sessionId;
+      }
+
+      const res = await fetch(this.postUrl, {
+        method: 'POST',
+        headers: reqHeaders,
         body: JSON.stringify(notification)
       });
+
+      const sessId = res.headers.get('Mcp-Session-Id');
+      if (sessId) {
+          this.sessionId = sessId;
+      }
 
       if (!res.ok) {
         const text = await res.text();
