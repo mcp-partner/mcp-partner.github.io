@@ -2,8 +2,10 @@
 
 import { IMcpClient, ProxyConfig, MessageHandler, ErrorHandler, Unsubscribe } from './mcpClient';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { ListToolsResultSchema, CallToolResultSchema, ListResourcesResultSchema, ListPromptsResultSchema, GetPromptResultSchema, ReadResourceResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { JsonRpcMessage } from '../types';
+import { z } from 'zod';
 
 /**
  * Custom Transport implementation for Streamable HTTP that uses fetch for both
@@ -54,7 +56,7 @@ class CustomStreamableTransport implements Transport {
             }
 
             // Capture session ID from GET response if present (some servers assign it on connection)
-            const sessId = response.headers.get('Mcp-Session-Id');
+            const sessId = this.getMcpSessionId(response.headers);
             if (sessId) {
                 this.sessionId = sessId;
                 console.log('[HTTP] Session ID captured from GET response:', sessId);
@@ -86,6 +88,21 @@ class CustomStreamableTransport implements Transport {
         }
     }
 
+    getMcpSessionId(responseHeaders: Headers): string | undefined {
+        // for 循环
+        // 遍历所有响应头
+        for (const [key, value] of responseHeaders.entries()) {
+            if (key.toLowerCase() === 'mcp-session-id') {
+                this.sessionId = value;
+                console.log('[HTTP] Session ID captured from GET response:', value);
+                break;
+            }
+        }
+        console.log('[HTTP] Session ID not found in GET response headers.');
+
+        return this.sessionId;
+    }
+
     async send(message: any): Promise<void> {
         this.messageLogger(message); // Log outgoing message
         
@@ -108,8 +125,19 @@ class CustomStreamableTransport implements Transport {
                 signal: this.abortController?.signal
             });
 
+            if (JSON.stringify(message).indexOf('initialize') !== -1) {
+                console.log('send initialize message');
+
+                // 打印所有 response headers
+                let headersArr: Array<[string, string]> = [];
+                for (const [key, value] of response.headers.entries()) {
+                    headersArr.push([key, value]);
+                }
+                console.log('[HTTP] POST response headers:', headersArr);
+            }
+
             // Capture Session ID if presented
-            const newSessionId = response.headers.get('Mcp-Session-Id');
+            const newSessionId = this.getMcpSessionId(response.headers);
             if (newSessionId) {
                 this.sessionId = newSessionId;
                 console.log('[HTTP] Session ID updated from POST response:', newSessionId);
@@ -313,11 +341,44 @@ export class StreamableHttpMcpClient implements IMcpClient {
             throw new Error("Client not connected");
         }
 
-        // @ts-ignore - Generic request
+        // // @ts-ignore - Generic request
+        // const result = await this.client.request({
+        //     method: method,
+        //     params: params
+        // });
+
+        // Determine the appropriate schema based on the method
+        let schema: z.ZodSchema<any>;
+
+        switch (method) {
+            case 'tools/list':
+                schema = ListToolsResultSchema;
+                break;
+            case 'tools/call':
+                schema = CallToolResultSchema;
+                break;
+            case 'resources/list':
+                schema = ListResourcesResultSchema;
+                break;
+            case 'prompts/list':
+                schema = ListPromptsResultSchema;
+                break;
+            case 'prompts/get':
+                schema = GetPromptResultSchema;
+                break;
+            case 'resources/read':
+                schema = ReadResourceResultSchema;
+                break;
+            default:
+                // For unknown methods, use a loose schema that accepts any response
+                schema = z.any();
+        }
+
+        // @ts-ignore - Generic request with schema
         const result = await this.client.request({
             method: method,
             params: params
-        });
+        }, schema);
 
         return result;
     }
