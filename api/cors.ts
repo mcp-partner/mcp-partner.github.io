@@ -34,7 +34,20 @@ export default async function handler(req: Request) {
   try {
     // Prepare headers for the target request
     const headers = new Headers();
-    const unsafeHeaders = ['host', 'connection', 'origin', 'referer', 'content-length', 'transfer-encoding'];
+    // Filter out headers that shouldn't be forwarded or might cause issues
+    const unsafeHeaders = [
+      'host', 
+      'connection', 
+      'origin', 
+      'referer', 
+      'content-length', 
+      'transfer-encoding', 
+      'accept-encoding', // Let the upstream decide or default to identity, prevents double-compression issues
+      'sec-fetch-dest',
+      'sec-fetch-mode',
+      'sec-fetch-site',
+      'sec-fetch-user'
+    ];
     
     // Copy headers from the incoming request, excluding unsafe ones
     req.headers.forEach((value, key) => {
@@ -43,22 +56,30 @@ export default async function handler(req: Request) {
         }
     });
 
+    // Ensure we have a user agent to avoid being blocked by some servers
+    if (!headers.has('user-agent')) {
+        headers.set('user-agent', 'mcp-partner-proxy/1.0');
+    }
+
+    // Determine if we should pass the body
+    // GET/HEAD requests must not have a body to avoid hanging the fetch
+    const isWrite = ['POST', 'PUT', 'PATCH'].includes(req.method.toUpperCase());
+    const body = isWrite ? req.body : null;
+
     // Make the request to the target
     const response = await fetch(targetUrl, {
       method: req.method,
       headers: headers,
-      body: req.body,
+      body: body,
+      redirect: 'follow',
       // @ts-ignore: duplex is required for streaming bodies in some fetch implementations
-      duplex: 'half' 
+      duplex: isWrite ? 'half' : undefined
     });
 
     // Create a new response with the target's body and status
     const responseHeaders = new Headers(response.headers);
     
-    // CRITICAL FIX: Delete headers that cause issues with streaming and compression.
-    // The Edge Runtime `fetch` automatically decompresses the response body. 
-    // If we forward `content-encoding: gzip`, the browser tries to decompress it AGAIN,
-    // which causes the request to hang or fail because the body is already plain text.
+    // Delete headers that cause issues with streaming and compression
     responseHeaders.delete('content-encoding');
     responseHeaders.delete('content-length');
     responseHeaders.delete('transfer-encoding');
