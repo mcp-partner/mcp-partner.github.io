@@ -4,7 +4,7 @@ import { Sidebar } from './components/Sidebar';
 import { RequestPanel } from './components/RequestPanel';
 import { LogViewer } from './components/LogViewer';
 import { McpClient, ProxyConfig } from './services/mcpClient';
-import { ConnectionStatus, LogEntry, McpTool, JsonRpcMessage, Language, Theme, McpServerType } from './types';
+import { ConnectionStatus, LogEntry, McpTool, JsonRpcMessage, Language, Theme } from './types';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import { Github } from 'lucide-react';
 
@@ -103,14 +103,13 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const handleConnect = async (url: string, type: McpServerType, proxyConfig: ProxyConfig, headers: Record<string, string>) => {
+  const handleConnect = async (url: string, proxyConfig: ProxyConfig, headers: Record<string, string>) => {
     setStatus(ConnectionStatus.CONNECTING);
     addLog({ 
         type: 'info', 
         direction: 'local', 
         summary: `Connecting to ${url}...`,
         details: { 
-          protocol: type,
           ...(proxyConfig.enabled ? { proxy: proxyConfig.prefix } : {}),
           ...(Object.keys(headers).length > 0 ? { headers } : {})
         }
@@ -119,17 +118,27 @@ const App: React.FC = () => {
     setToolStates({});
     
     try {
-      // Connect (SDK handles Initialize handshake automatically)
-      await mcpClient.current.connect(url, type, proxyConfig, headers);
-      
+      await mcpClient.current.connect(url, proxyConfig, headers);
       setStatus(ConnectionStatus.CONNECTED);
-      if (type === 'sse') {
-          addLog({ type: 'info', direction: 'local', summary: 'SSE Connected & Initialized via SDK.' });
-      } else {
-          addLog({ type: 'info', direction: 'local', summary: 'Streamable HTTP Connected & Initialized via SDK.' });
-      }
+      addLog({ type: 'info', direction: 'local', summary: 'SSE Connected. Endpoint received.' });
       
-      // Fetch Tools immediately after connection
+      // Initialize Flow
+      addLog({ type: 'info', direction: 'local', summary: 'Sending initialize...' });
+      const initResult = await mcpClient.current.sendRequest('initialize', {
+          protocolVersion: '2024-11-05',
+          capabilities: {},
+          clientInfo: {
+              name: 'mcp-postman-web',
+              version: '1.0.0'
+          }
+      });
+      addLog({ type: 'info', direction: 'in', summary: 'Initialized', details: initResult });
+
+      // Send initialized notification
+      addLog({ type: 'info', direction: 'local', summary: 'Sending initialized notification...' });
+      await mcpClient.current.sendNotification('notifications/initialized');
+
+      // Fetch Tools
       fetchTools();
 
     } catch (e: any) {
@@ -154,7 +163,7 @@ const App: React.FC = () => {
   const fetchTools = async () => {
     setLoadingTools(true);
     try {
-        const res = await mcpClient.current.listTools();
+        const res = await mcpClient.current.sendRequest('tools/list');
         if (res && res.tools) {
             setTools(res.tools);
             addLog({ type: 'info', direction: 'in', summary: `Loaded ${res.tools.length} tools` });
@@ -186,8 +195,10 @@ const App: React.FC = () => {
     setIsExecuting(true);
     
     try {
-        const result = await mcpClient.current.callTool(selectedTool.name, args);
-        
+        const result = await mcpClient.current.sendRequest('tools/call', {
+            name: selectedTool.name,
+            arguments: args
+        });
         addLog({ type: 'response', direction: 'in', summary: `Tool Executed: ${selectedTool.name}`, details: result });
         
         setToolStates(prev => ({
@@ -269,7 +280,7 @@ const App: React.FC = () => {
       <footer className="h-7 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 text-[11px] text-gray-500 dark:text-gray-500 shrink-0 select-none shadow-[0_-1px_3px_rgba(0,0,0,0.02)] z-50">
           <div className="flex items-center gap-4">
             <span className="font-mono bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-[10px] tracking-wide text-gray-600 dark:text-gray-400">
-            v0.2.0 (Online MCP Client)
+            v0.1.1
             </span>
             <span>
               Author: <a href="https://github.com/Ericwyn" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">@Ericwyn</a>
