@@ -4,6 +4,8 @@
 
 一个类似 Postman 的工具，用于通过 SSE (Server-Sent Events) 测试和交互 Model Context Protocol (MCP) 服务器。
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FEricwyn%2Fmcp-partner)
+
 点击此处直接访问
 
 [https://mcp-partner.vercel.app/](https://mcp-partner.vercel.app/)
@@ -41,12 +43,11 @@
 
 由于浏览器的安全策略，网页应用直接访问本地 (localhost) 或不同域名的 MCP 服务器通常会遇到 **CORS (跨域资源共享)** 错误。
 
-为了解决这个问题，MCP Partner 提供了内置的代理解决方案：
+为了解决这个问题，MCP Partner 支持 3 种代理方式（点击连接栏右侧的盾牌图标 🛡️ 进行设置）：
 
-1. **一键代理**: 点击连接栏右侧的盾牌图标 🛡️，勾选 "启用 CORS 代理" (默认使用 [corsproxy.io](corsproxy.io))。
-2. **Pancors 支持**: 我们针对 [Pancors](https://github.com/Ericwyn/pancors) 代理服务进行了深度适配。
-   - 工具会自动在发送 JSON 数据前发送 `OPTIONS` 预检请求，确保复杂请求能通过严格的代理校验。
-   - 推荐点击代理设置中的链接，部署一个自己的 Pancors 服务以获得最稳定的体验。
+1. **Vercel 部署 (内置)**: 如果您将本项目部署在 Vercel 上，可以直接使用 `/cors?url=` 作为代理前缀（使用本项目自带的 Edge Function）。
+2. **公共代理**: 使用公共代理服务，例如 `https://corsproxy.io/?url=`。
+3. **Pancors (本地推荐)**: 自己本地启动 [Pancors](https://github.com/Ericwyn/pancors)。
 
 
 ## 使用说明

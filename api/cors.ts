@@ -24,8 +24,6 @@ export default async function handler(req: Request) {
     return new Response('Missing "url" query parameter', { status: 400, headers: corsHeaders });
   }
 
-
-
   try {
     // Validate URL
     new URL(targetUrl);

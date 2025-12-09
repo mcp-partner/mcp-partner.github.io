@@ -5,6 +5,8 @@ English | [中文](README.md)
 
 A Postman-like interface for testing and interacting with Model Context Protocol (MCP) Servers via SSE.
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FEricwyn%2Fmcp-partner)
+
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Version](https://img.shields.io/badge/version-0.0.5-green.svg)
 
@@ -38,12 +40,13 @@ A Postman-like interface for testing and interacting with Model Context Protocol
 
 Due to browser security policies, accessing local (localhost) or cross-origin MCP servers directly from a web page often triggers **CORS (Cross-Origin Resource Sharing)** errors.
 
-To solve this, MCP Partner includes built-in proxy support:
+To solve this, MCP Partner supports 3 proxy methods (configurable via the Shield icon 🛡️):
 
-1. **One-Click Proxy**: Click the Shield icon 🛡️ in the connection bar and enable "Use CORS Proxy".
-2. **Pancors Support**: We have optimized support for [Pancors](https://github.com/Ericwyn/pancors).
-   - The app automatically handles `OPTIONS` pre-flight requests before sending JSON data to ensure compatibility with strict proxies.
-   - We recommend deploying your own Pancors instance (link provided in settings) for the most stable experience.
+1. **Vercel Deployment (Built-in)**: If deployed on Vercel, you can use `/cors?url=` as the proxy prefix (uses the project's own Edge Function).
+2. **Public Proxy**: Use a public proxy like `https://corsproxy.io/?url=`.
+3. **Pancors (Local Recommended)**: Run your own [Pancors](https://github.com/Ericwyn/pancors) locally.
+   - Optimized support included (automatically handles `OPTIONS` pre-flight requests).
+   - Recommended for local development and stability.
 
 ## Usage
 
