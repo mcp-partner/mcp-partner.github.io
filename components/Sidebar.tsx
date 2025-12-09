@@ -56,7 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <div className="w-full h-full flex bg-gray-50 dark:bg-gray-850 border-r border-gray-200 dark:border-gray-700 transition-colors duration-200">
         
         {/* Vertical Navigation Bar */}
-        <div className="w-10 bg-gray-100 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col items-center py-4 gap-2 shrink-0">
+        <div className="w-10 bg-gray-100 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col items-center py-2 gap-2 shrink-0">
             <button 
                 onClick={() => setActiveTab('tools')}
                 className={`flex flex-col items-center gap-1.5 py-3 w-8 rounded-md transition-all ${

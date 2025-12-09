@@ -1,14 +1,15 @@
 
-
 import { JsonRpcMessage, JsonRpcResponse, JsonRpcRequest, JsonRpcNotification } from '../types';
 import { IMcpClient, ProxyConfig, MessageHandler, ErrorHandler, Unsubscribe } from './mcpClient';
+import { ListToolsResultSchema, CallToolResultSchema, ListResourcesResultSchema, ListPromptsResultSchema, GetPromptResultSchema, ReadResourceResultSchema } from '@modelcontextprotocol/sdk/types.js';
+import { z } from 'zod';
 
 export class SseMcpClient implements IMcpClient {
   private abortController: AbortController | null = null;
   private postUrl: string | null = null;
   private messageHandlers: MessageHandler[] = [];
   private errorHandlers: ErrorHandler[] = [];
-  private pendingRequests: Map<string | number, { resolve: (val: any) => void; reject: (err: any) => void }> = new Map();
+  private pendingRequests: Map<string | number, { resolve: (val: any) => void; reject: (err: any) => void; validator?: z.ZodSchema<any> }> = new Map();
   private requestCounter = 0;
   
   private proxyConfig: ProxyConfig = { enabled: false, prefix: '' };
@@ -210,7 +211,19 @@ export class SseMcpClient implements IMcpClient {
       const pending = this.pendingRequests.get(data.id);
       if (pending) {
         if ('result' in (data as JsonRpcResponse)) {
-          pending.resolve((data as JsonRpcResponse).result);
+          let result = (data as JsonRpcResponse).result;
+          // Apply schema validation if a validator was registered for this request
+          if (pending.validator) {
+              try {
+                  result = pending.validator.parse(result);
+              } catch (e) {
+                  console.error(`SSE Response Validation Error for request ${data.id}:`, e);
+                  pending.reject(e);
+                  this.pendingRequests.delete(data.id);
+                  return;
+              }
+          }
+          pending.resolve(result);
         } else if ('error' in (data as JsonRpcResponse)) {
           pending.reject((data as JsonRpcResponse).error);
         }
@@ -224,6 +237,17 @@ export class SseMcpClient implements IMcpClient {
       throw new Error("Not connected or POST endpoint not received yet.");
     }
 
+    // Determine appropriate validator for the expected response
+    let validator: z.ZodSchema<any> | undefined;
+    switch (method) {
+        case 'tools/list': validator = ListToolsResultSchema; break;
+        case 'tools/call': validator = CallToolResultSchema; break;
+        case 'resources/list': validator = ListResourcesResultSchema; break;
+        case 'resources/read': validator = ReadResourceResultSchema; break;
+        case 'prompts/list': validator = ListPromptsResultSchema; break;
+        case 'prompts/get': validator = GetPromptResultSchema; break;
+    }
+
     const id = this.requestCounter++;
     const request: JsonRpcRequest = {
       jsonrpc: '2.0',
@@ -235,7 +259,7 @@ export class SseMcpClient implements IMcpClient {
     this.messageHandlers.forEach(h => h(request));
 
     const responsePromise = new Promise((resolve, reject) => {
-      this.pendingRequests.set(id, { resolve, reject });
+      this.pendingRequests.set(id, { resolve, reject, validator });
       setTimeout(() => {
         if (this.pendingRequests.has(id)) {
           this.pendingRequests.delete(id);
