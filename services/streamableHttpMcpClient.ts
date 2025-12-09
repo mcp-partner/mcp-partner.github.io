@@ -330,15 +330,12 @@ export class StreamableHttpMcpClient implements IMcpClient {
             throw new Error("Client not connected");
         }
 
-        // // @ts-ignore - Generic request
-        // const result = await this.client.request({
-        //     method: method,
-        //     params: params
-        // });
-
         // Determine the appropriate schema based on the method
         let schema: z.ZodSchema<any>;
-
+        let sdkMethod = method;
+        
+        // Map generic RPC calls to SDK typed methods where possible
+        // Note: The SDK's client.request() handles strict schema validation.
         switch (method) {
             case 'tools/list':
                 schema = ListToolsResultSchema;
@@ -349,14 +346,14 @@ export class StreamableHttpMcpClient implements IMcpClient {
             case 'resources/list':
                 schema = ListResourcesResultSchema;
                 break;
+            case 'resources/read':
+                schema = ReadResourceResultSchema;
+                break;
             case 'prompts/list':
                 schema = ListPromptsResultSchema;
                 break;
             case 'prompts/get':
                 schema = GetPromptResultSchema;
-                break;
-            case 'resources/read':
-                schema = ReadResourceResultSchema;
                 break;
             default:
                 // For unknown methods, use a loose schema that accepts any response

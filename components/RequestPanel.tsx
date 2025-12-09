@@ -1,21 +1,37 @@
 
+
 import React, { useEffect, useState, useMemo } from 'react';
-import { McpTool, Language } from '../types';
-import { Play, Code2, Info, Copy, Check, FileText, Braces, Loader2, Terminal, Eraser, X } from 'lucide-react';
+import { McpTool, McpResource, McpPrompt, Language } from '../types';
+import { Play, Code2, Info, Copy, Check, FileText, Braces, Loader2, Terminal, Eraser, X, Eye } from 'lucide-react';
 import { translations } from '../utils/i18n';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 
 interface RequestPanelProps {
-  tool: McpTool | null;
-  onExecute: (args: any) => void;
+  item: McpTool | McpResource | McpPrompt | null;
+  type: 'tools' | 'resources' | 'prompts';
+  
+  onExecute: (args: any) => void; // for tools and prompts
+  onReadResource: (uri: string) => void; // for resources
+  
   isExecuting: boolean;
   lang: Language;
+  
   response: { status: 'success' | 'error', data: any } | null;
   savedArgs: string;
   onArgsChange: (args: string) => void;
 }
 
-export const RequestPanel: React.FC<RequestPanelProps> = ({ tool, onExecute, isExecuting, lang, response, savedArgs, onArgsChange }) => {
+export const RequestPanel: React.FC<RequestPanelProps> = ({ 
+    item, 
+    type,
+    onExecute, 
+    onReadResource,
+    isExecuting, 
+    lang, 
+    response, 
+    savedArgs, 
+    onArgsChange 
+}) => {
   const [argsJson, setArgsJson] = useState(savedArgs || '{}');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [mode, setMode] = useState<'form' | 'json'>('form');
@@ -25,15 +41,15 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({ tool, onExecute, isE
 
   const t = translations[lang];
 
-  // Sync local state when the selected tool changes (restore persisted args)
+  // Sync local state when the selected item changes (restore persisted args)
   useEffect(() => {
-    if (tool) {
+    if (item) {
         setArgsJson(savedArgs || '{}');
         setJsonError(null);
         setMode('form');
         setShowDescModal(false);
     }
-  }, [tool?.name]); 
+  }, [item?.name, type]); 
 
   const handleJsonChange = (val: string) => {
     setArgsJson(val);
@@ -67,11 +83,16 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({ tool, onExecute, isE
   };
 
   const handleRun = () => {
-    try {
-      const parsed = JSON.parse(argsJson);
-      onExecute(parsed);
-    } catch (e) {
-      // should be caught by validation
+    if (type === 'resources') {
+        const resource = item as McpResource;
+        onReadResource(resource.uri);
+    } else {
+        try {
+            const parsed = JSON.parse(argsJson);
+            onExecute(parsed);
+        } catch (e) {
+            // should be caught by validation
+        }
     }
   };
 
@@ -88,15 +109,30 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({ tool, onExecute, isE
     setTimeout(() => setResponseCopied(false), 2000);
   };
 
-  // Memoize schema properties
+  // Generate Schema properties for Tools or Prompts
   const schemaProps = useMemo(() => {
-    if (!tool?.inputSchema?.properties) return [];
-    return Object.entries(tool.inputSchema.properties).map(([key, val]: [string, any]) => ({
-        key,
-        ...val,
-        required: tool.inputSchema.required?.includes(key) || false
-    }));
-  }, [tool]);
+      if (type === 'tools') {
+          const tool = item as McpTool;
+          if (!tool?.inputSchema?.properties) return [];
+          return Object.entries(tool.inputSchema.properties).map(([key, val]: [string, any]) => ({
+            key,
+            ...val,
+            required: tool.inputSchema.required?.includes(key) || false,
+            // Basic type normalization
+            type: val.type || 'string' 
+        }));
+      } else if (type === 'prompts') {
+          const prompt = item as McpPrompt;
+          if (!prompt?.arguments) return [];
+          return prompt.arguments.map(arg => ({
+              key: arg.name,
+              description: arg.description,
+              required: arg.required,
+              type: 'string' // Prompts arguments are always strings in standard MCP
+          }));
+      }
+      return [];
+  }, [item, type]);
 
   // Parse current args safely for form
   const currentArgsObj = useMemo(() => {
@@ -107,19 +143,25 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({ tool, onExecute, isE
     }
   }, [argsJson]);
 
-  // Check if description is long enough to warrant a modal
   const hasLongDesc = useMemo(() => {
-      return tool?.description && tool.description.length > 100;
-  }, [tool]);
+      return item?.description && item.description.length > 100;
+  }, [item]);
 
-  if (!tool) {
+  if (!item) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-500 select-none transition-colors duration-200">
         <Code2 className="w-16 h-16 mb-4 opacity-20" />
-        <p className="text-lg">{t.selectTool}</p>
+        <p className="text-lg">{t.selectItem}</p>
       </div>
     );
   }
+
+  // Determine label for the action button
+  const actionLabel = type === 'resources' ? t.readResource : (type === 'prompts' ? t.getPrompt : t.runTool);
+  const actionIcon = type === 'resources' ? <Eye className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />;
+
+  // Resource View doesn't need input tabs (usually)
+  const isResource = type === 'resources';
 
   return (
     <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900 h-full overflow-hidden transition-colors duration-200 relative">
@@ -127,11 +169,24 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({ tool, onExecute, isE
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-850 flex items-start justify-between shadow-sm z-10 shrink-0">
             <div className="min-w-0 pr-4">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <span className="text-blue-600 dark:text-blue-400 font-mono text-base px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-100 dark:border-blue-800 shrink-0">{t.toolCall}</span>
-                    <span className="truncate">{tool.name}</span>
+                    <span className="text-blue-600 dark:text-blue-400 font-mono text-base px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-100 dark:border-blue-800 shrink-0 uppercase">
+                        {type === 'tools' ? 'TOOL' : type === 'resources' ? 'RESOURCE' : 'PROMPT'}
+                    </span>
+                    <span className="truncate" title={item.name}>{item.name}</span>
                 </h2>
+                
+                {/* Resource Specific Metadata */}
+                {isResource && (
+                    <div className="mt-1 flex items-center gap-2 text-xs text-gray-500 font-mono">
+                         <span className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700">
+                             {(item as McpResource).mimeType || 'unknown-type'}
+                         </span>
+                         <span className="truncate text-gray-400">{(item as McpResource).uri}</span>
+                    </div>
+                )}
+
                 <div className="mt-2">
-                    <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed line-clamp-2" title={tool.description}>{tool.description}</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed line-clamp-2" title={item.description}>{item.description || t.noDescription}</p>
                     {hasLongDesc && (
                         <button 
                             onClick={() => setShowDescModal(true)}
@@ -152,166 +207,172 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({ tool, onExecute, isE
                     : 'bg-blue-600 hover:bg-blue-500 shadow-sm'
                 }`}
             >
-                <Play className={`w-4 h-4 ${isExecuting ? 'hidden' : 'fill-current'}`} />
-                {isExecuting ? t.running : t.send}
+                {isExecuting ? <Loader2 className="w-4 h-4 animate-spin" /> : actionIcon}
+                {isExecuting ? t.running : actionLabel}
             </button>
         </div>
 
         {/* Content - Split View */}
         <div className="flex-1 flex overflow-hidden">
             <PanelGroup direction="horizontal">
-                {/* LEFT: INPUT CONFIG */}
-                <Panel defaultSize={50} minSize={30} className="flex flex-col bg-white dark:bg-gray-900">
-                     {/* Tabs & Toolbar */}
-                     <div className="flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-850/80 backdrop-blur-sm shrink-0">
-                        <div className="flex space-x-1">
-                            <button
-                                onClick={() => setMode('form')}
-                                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                                    mode === 'form' 
-                                    ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                                }`}
-                            >
-                                <FileText className="w-4 h-4" />
-                                {t.modeForm}
-                            </button>
-                            <button
-                                onClick={() => setMode('json')}
-                                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                                    mode === 'json' 
-                                    ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                                }`}
-                            >
-                                <Braces className="w-4 h-4" />
-                                {t.modeJson}
-                            </button>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                             <button
-                                onClick={handleClearParams}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
-                                title={t.clearParams}
-                            >
-                                <Eraser className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">{t.clearParams}</span>
-                            </button>
-
-                            <button
-                                onClick={copyToClipboard}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                                title="Copy JSON to clipboard"
-                            >
-                                {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
-                                {copied ? t.copied : t.copy}
-                            </button>
-                        </div>
-                     </div>
-
-                     <div className="flex-1 relative overflow-hidden">
-                        {/* FORM MODE */}
-                        {mode === 'form' && (
-                            <div className="absolute inset-0 overflow-y-auto p-6">
-                                {currentArgsObj === null ? (
-                                    <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                                        <Info className="w-8 h-8 mb-2 text-red-400" />
-                                        <p className="text-sm text-center max-w-md">{t.formInvalid}</p>
-                                        <button 
-                                            onClick={() => setMode('json')}
-                                            className="mt-4 text-blue-600 hover:underline text-sm"
-                                        >
-                                            Switch to JSON View
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-6 max-w-3xl">
-                                        {schemaProps.length === 0 && (
-                                            <div className="text-gray-400 italic text-sm border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg p-8 text-center">
-                                                This tool takes no arguments.
-                                            </div>
-                                        )}
-
-                                        {schemaProps.map((prop) => (
-                                            <div key={prop.key} className="group">
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
-                                                    {prop.key}
-                                                    {prop.required && <span className="text-red-500 font-bold" title="Required">*</span>}
-                                                    <span className="text-xs font-mono text-gray-400 dark:text-gray-500 ml-auto">{prop.type}</span>
-                                                </label>
-                                                
-                                                {prop.type === 'boolean' ? (
-                                                    <div className="flex items-center h-10">
-                                                        <label className="relative inline-flex items-center cursor-pointer">
-                                                            <input 
-                                                                type="checkbox" 
-                                                                className="sr-only peer"
-                                                                checked={currentArgsObj[prop.key] === true}
-                                                                onChange={(e) => handleFormChange(prop.key, e.target.checked)}
-                                                            />
-                                                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                            <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                                                                {currentArgsObj[prop.key] ? 'True' : 'False'}
-                                                            </span>
-                                                        </label>
-                                                    </div>
-                                                ) : (
-                                                    <input
-                                                        type={prop.type === 'integer' || prop.type === 'number' ? 'number' : 'text'}
-                                                        value={currentArgsObj[prop.key] !== undefined ? currentArgsObj[prop.key] : ''}
-                                                        onChange={(e) => {
-                                                            const val = e.target.value;
-                                                            let finalVal: string | number = val;
-                                                            if (prop.type === 'integer') finalVal = parseInt(val) || 0;
-                                                            if (prop.type === 'number') finalVal = parseFloat(val) || 0;
-                                                            if (val === '' && prop.type === 'string') finalVal = '';
-                                                            if (val === '' && (prop.type === 'integer' || prop.type === 'number')) {
-                                                                finalVal = val as any; 
-                                                            }
-                                                            handleFormChange(prop.key, finalVal);
-                                                        }}
-                                                        placeholder={prop.description}
-                                                        className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-200 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-2.5 placeholder-gray-400 transition-colors"
-                                                    />
-                                                )}
-                                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-500 leading-relaxed">{prop.description}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                {/* LEFT: INPUT CONFIG (Hidden for Resources for now, as they generally take no params in basic read) */}
+                {!isResource && (
+                    <>
+                    <Panel defaultSize={50} minSize={30} className="flex flex-col bg-white dark:bg-gray-900">
+                        {/* Tabs & Toolbar */}
+                        <div className="flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-850/80 backdrop-blur-sm shrink-0">
+                            <div className="flex space-x-1">
+                                <button
+                                    onClick={() => setMode('form')}
+                                    className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                        mode === 'form' 
+                                        ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                                    }`}
+                                >
+                                    <FileText className="w-4 h-4" />
+                                    {t.modeForm}
+                                </button>
+                                <button
+                                    onClick={() => setMode('json')}
+                                    className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                        mode === 'json' 
+                                        ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                                    }`}
+                                >
+                                    <Braces className="w-4 h-4" />
+                                    {t.modeJson}
+                                </button>
                             </div>
-                        )}
 
-                        {/* JSON MODE */}
-                        {mode === 'json' && (
-                             <div className="absolute inset-0 p-0">
-                                 <textarea 
-                                     value={argsJson}
-                                     onChange={(e) => handleJsonChange(e.target.value)}
-                                     className={`w-full h-full bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-200 font-mono text-sm p-4 resize-none focus:outline-none focus:ring-0 transition-colors ${
-                                         jsonError ? 'bg-red-50/50 dark:bg-red-900/10' : ''
-                                     }`}
-                                     spellCheck={false}
-                                 />
-                                 {jsonError && (
-                                     <div className="absolute bottom-4 left-4 right-4 bg-red-100 dark:bg-red-900/90 text-red-800 dark:text-red-200 px-3 py-2 rounded text-xs border border-red-200 dark:border-red-700 shadow-lg backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2">
-                                         <strong>{t.jsonError}:</strong> {jsonError}
-                                     </div>
-                                 )}
-                             </div>
-                        )}
-                     </div>
-                </Panel>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={handleClearParams}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+                                    title={t.clearParams}
+                                >
+                                    <Eraser className="w-3.5 h-3.5" />
+                                    <span className="hidden sm:inline">{t.clearParams}</span>
+                                </button>
 
-                <PanelResizeHandle className="w-1 bg-gray-200 dark:bg-gray-800 hover:bg-blue-500 transition-colors" />
+                                <button
+                                    onClick={copyToClipboard}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                    title="Copy JSON to clipboard"
+                                >
+                                    {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                                    {copied ? t.copied : t.copy}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 relative overflow-hidden">
+                            {/* FORM MODE */}
+                            {mode === 'form' && (
+                                <div className="absolute inset-0 overflow-y-auto p-6">
+                                    {currentArgsObj === null ? (
+                                        <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                                            <Info className="w-8 h-8 mb-2 text-red-400" />
+                                            <p className="text-sm text-center max-w-md">{t.formInvalid}</p>
+                                            <button 
+                                                onClick={() => setMode('json')}
+                                                className="mt-4 text-blue-600 hover:underline text-sm"
+                                            >
+                                                Switch to JSON View
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-6 max-w-3xl">
+                                            {schemaProps.length === 0 && (
+                                                <div className="text-gray-400 italic text-sm border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg p-8 text-center">
+                                                    {type === 'prompts' ? t.noArgsPrompt : t.noArgsTool}
+                                                </div>
+                                            )}
+
+                                            {schemaProps.map((prop) => (
+                                                <div key={prop.key} className="group">
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
+                                                        {prop.key}
+                                                        {prop.required && <span className="text-red-500 font-bold" title="Required">*</span>}
+                                                        <span className="text-xs font-mono text-gray-400 dark:text-gray-500 ml-auto">{prop.type}</span>
+                                                    </label>
+                                                    
+                                                    {prop.type === 'boolean' ? (
+                                                        <div className="flex items-center h-10">
+                                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                                <input 
+                                                                    type="checkbox" 
+                                                                    className="sr-only peer"
+                                                                    checked={currentArgsObj[prop.key] === true}
+                                                                    onChange={(e) => handleFormChange(prop.key, e.target.checked)}
+                                                                />
+                                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                                                <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                                                                    {currentArgsObj[prop.key] ? 'True' : 'False'}
+                                                                </span>
+                                                            </label>
+                                                        </div>
+                                                    ) : (
+                                                        <input
+                                                            type={prop.type === 'integer' || prop.type === 'number' ? 'number' : 'text'}
+                                                            value={currentArgsObj[prop.key] !== undefined ? currentArgsObj[prop.key] : ''}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                let finalVal: string | number = val;
+                                                                if (prop.type === 'integer') finalVal = parseInt(val) || 0;
+                                                                if (prop.type === 'number') finalVal = parseFloat(val) || 0;
+                                                                if (val === '' && prop.type === 'string') finalVal = '';
+                                                                if (val === '' && (prop.type === 'integer' || prop.type === 'number')) {
+                                                                    finalVal = val as any; 
+                                                                }
+                                                                handleFormChange(prop.key, finalVal);
+                                                            }}
+                                                            placeholder={prop.description}
+                                                            className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-200 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-2.5 placeholder-gray-400 transition-colors"
+                                                        />
+                                                    )}
+                                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-500 leading-relaxed">{prop.description}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* JSON MODE */}
+                            {mode === 'json' && (
+                                <div className="absolute inset-0 p-0">
+                                    <textarea 
+                                        value={argsJson}
+                                        onChange={(e) => handleJsonChange(e.target.value)}
+                                        className={`w-full h-full bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-200 font-mono text-sm p-4 resize-none focus:outline-none focus:ring-0 transition-colors ${
+                                            jsonError ? 'bg-red-50/50 dark:bg-red-900/10' : ''
+                                        }`}
+                                        spellCheck={false}
+                                    />
+                                    {jsonError && (
+                                        <div className="absolute bottom-4 left-4 right-4 bg-red-100 dark:bg-red-900/90 text-red-800 dark:text-red-200 px-3 py-2 rounded text-xs border border-red-200 dark:border-red-700 shadow-lg backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2">
+                                            <strong>{t.jsonError}:</strong> {jsonError}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </Panel>
+
+                    <PanelResizeHandle className="w-1 bg-gray-200 dark:bg-gray-800 hover:bg-blue-500 transition-colors" />
+                    </>
+                )}
 
                 {/* RIGHT: RESPONSE VIEWER */}
-                <Panel defaultSize={50} minSize={20} className="flex flex-col bg-gray-50 dark:bg-gray-950 border-l border-gray-200 dark:border-gray-700">
+                <Panel defaultSize={isResource ? 100 : 50} minSize={20} className="flex flex-col bg-gray-50 dark:bg-gray-950 border-l border-gray-200 dark:border-gray-700">
                     <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-100/50 dark:bg-gray-900/50 flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-2">
                             <Terminal className="w-4 h-4 text-gray-500" />
-                            <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300">{t.responseOutput}</h3>
+                            <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                                {isResource ? t.resourceContent : t.responseOutput}
+                            </h3>
                         </div>
                         <button
                             onClick={copyResponse}
@@ -328,14 +389,14 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({ tool, onExecute, isE
                         {isExecuting && (
                             <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 bg-white/50 dark:bg-black/50 backdrop-blur-sm z-20">
                                 <Loader2 className="w-8 h-8 mb-2 animate-spin text-blue-500" />
-                                <p className="text-sm font-medium">{t.executing}</p>
+                                <p className="text-sm font-medium">{isResource ? t.reading : t.executing}</p>
                             </div>
                         )}
 
                         {!response && !isExecuting && (
                             <div className="h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-600 p-8 text-center">
-                                <Terminal className="w-12 h-12 mb-3 opacity-20" />
-                                <p className="text-sm">{t.noResponse}</p>
+                                {isResource ? <Eye className="w-12 h-12 mb-3 opacity-20" /> : <Terminal className="w-12 h-12 mb-3 opacity-20" />}
+                                <p className="text-sm">{isResource ? t.noResourceContent : t.noResponse}</p>
                             </div>
                         )}
 
@@ -373,7 +434,7 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({ tool, onExecute, isE
                     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
                         <h3 className="font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                             <Info className="w-4 h-4 text-blue-500" />
-                            {t.toolDescription}
+                            {type === 'resources' ? t.resourceDescription : t.toolDescription}
                         </h3>
                         <button 
                             onClick={() => setShowDescModal(false)}
@@ -385,7 +446,7 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({ tool, onExecute, isE
                     </div>
                     <div className="flex-1 overflow-auto p-4">
                         <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-200 dark:border-gray-800">
-                            {tool.description}
+                            {item.description}
                         </pre>
                     </div>
                     <div className="p-3 border-t border-gray-200 dark:border-gray-700 flex justify-end shrink-0">

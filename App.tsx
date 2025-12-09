@@ -8,14 +8,14 @@ import { LogViewer } from './components/LogViewer';
 import { IMcpClient, ProxyConfig } from './services/mcpClient';
 import { SseMcpClient } from './services/sseMcpClient';
 import { StreamableHttpMcpClient } from './services/streamableHttpMcpClient';
-import { ConnectionStatus, LogEntry, McpTool, JsonRpcMessage, Language, Theme, TransportType } from './types';
+import { ConnectionStatus, LogEntry, McpTool, McpResource, McpPrompt, JsonRpcMessage, Language, Theme, TransportType } from './types';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import { Github } from 'lucide-react';
 import { APP_VERSION, REPO_URL } from './constants';
 import { translations } from './utils/i18n';
 
-interface ToolState {
-    argsJson: string;
+interface ItemState {
+    argsJson: string; // Used for Tools and Prompts inputs
     result: { status: 'success' | 'error', data: any } | null;
 }
 
@@ -41,14 +41,24 @@ const serializeError = (err: any) => {
 
 const App: React.FC = () => {
   const [status, setStatus] = useState<ConnectionStatus>(ConnectionStatus.DISCONNECTED);
+  
+  // Collections
   const [tools, setTools] = useState<McpTool[]>([]);
+  const [resources, setResources] = useState<McpResource[]>([]);
+  const [prompts, setPrompts] = useState<McpPrompt[]>([]);
+  
+  // Selection
+  const [activeTab, setActiveTab] = useState<'tools' | 'resources' | 'prompts'>('tools');
   const [selectedTool, setSelectedTool] = useState<McpTool | null>(null);
+  const [selectedResource, setSelectedResource] = useState<McpResource | null>(null);
+  const [selectedPrompt, setSelectedPrompt] = useState<McpPrompt | null>(null);
+
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isExecuting, setIsExecuting] = useState(false);
-  const [loadingTools, setLoadingTools] = useState(false);
+  const [loadingItems, setLoadingItems] = useState(false);
   
-  // Store state (args + results) per tool name
-  const [toolStates, setToolStates] = useState<Record<string, ToolState>>({});
+  // Store state (args + results) per item name (prefixed by type to avoid collision)
+  const [itemStates, setItemStates] = useState<Record<string, ItemState>>({});
   
   // Settings - Initialize from localStorage
   const [lang, setLang] = useState<Language>(() => {
@@ -175,7 +185,9 @@ const App: React.FC = () => {
         meta: connectionContext.current
     });
     setTools([]);
-    setToolStates({});
+    setResources([]);
+    setPrompts([]);
+    setItemStates({});
     
     try {
       await mcpClient.current.connect(url, proxyConfig, headers);
@@ -205,8 +217,8 @@ const App: React.FC = () => {
           await mcpClient.current.sendNotification('notifications/initialized');
       }
 
-      // Fetch Tools
-      fetchTools();
+      // Fetch capabilities
+      fetchAllCapabilities();
 
     } catch (e: any) {
       if (e.message === 'Connection aborted') {
@@ -218,8 +230,6 @@ const App: React.FC = () => {
       const t = translations[lang];
 
       // Heuristic for CORS/Network error
-      // TypeError is thrown by fetch for network errors (DNS, CORS, Offline) across all browsers.
-      // e.g. "TypeError: Failed to fetch" (Chrome), "TypeError: NetworkError..." (Firefox)
       const isNetworkError = e instanceof TypeError && (
           e.message.match(/Failed to fetch|NetworkError|Load failed|Network request failed/i)
       );
@@ -250,20 +260,32 @@ const App: React.FC = () => {
     mcpClient.current.disconnect();
     setStatus(ConnectionStatus.DISCONNECTED);
     setTools([]);
+    setResources([]);
+    setPrompts([]);
     setSelectedTool(null);
-    setToolStates({});
+    setSelectedResource(null);
+    setSelectedPrompt(null);
+    setItemStates({});
     addLog({ type: 'info', direction: 'local', summary: 'Disconnected' });
     connectionContext.current = null;
   };
 
+  const fetchAllCapabilities = async () => {
+    setLoadingItems(true);
+    await Promise.allSettled([
+        fetchTools(),
+        fetchResources(),
+        fetchPrompts()
+    ]);
+    setLoadingItems(false);
+  };
+
   const fetchTools = async () => {
-    setLoadingTools(true);
     try {
         const res = await mcpClient.current.sendRequest('tools/list');
         const toolsList = res.tools || [];
         setTools(toolsList);
         addLog({ type: 'info', direction: 'in', summary: `Loaded ${toolsList.length} tools`, meta: connectionContext.current });
-        
     } catch (e: any) {
         addLog({ 
             type: 'error', 
@@ -272,41 +294,86 @@ const App: React.FC = () => {
             details: serializeError(e), 
             meta: connectionContext.current 
         });
-    } finally {
-        setLoadingTools(false);
     }
   };
 
-  const handleSelectTool = (tool: McpTool) => {
-      setSelectedTool(tool);
+  const fetchResources = async () => {
+    try {
+        const res = await mcpClient.current.sendRequest('resources/list');
+        const list = res.resources || [];
+        setResources(list);
+        addLog({ type: 'info', direction: 'in', summary: `Loaded ${list.length} resources`, meta: connectionContext.current });
+    } catch (e: any) {
+        // Resources might not be supported by all servers
+        console.log("Failed to list resources (optional)", e);
+    }
   };
 
+  const fetchPrompts = async () => {
+    try {
+        const res = await mcpClient.current.sendRequest('prompts/list');
+        const list = res.prompts || [];
+        setPrompts(list);
+        addLog({ type: 'info', direction: 'in', summary: `Loaded ${list.length} prompts`, meta: connectionContext.current });
+    } catch (e: any) {
+        // Prompts might not be supported by all servers
+        console.log("Failed to list prompts (optional)", e);
+    }
+  };
+
+  const handleSelectItem = (item: McpTool | McpResource | McpPrompt) => {
+      if (activeTab === 'tools') setSelectedTool(item as McpTool);
+      else if (activeTab === 'resources') setSelectedResource(item as McpResource);
+      else if (activeTab === 'prompts') setSelectedPrompt(item as McpPrompt);
+  };
+
+  const getUniqueKey = (type: string, name: string) => `${type}:${name}`;
+
   const handleArgsChange = (argsJson: string) => {
-      if (!selectedTool) return;
-      setToolStates(prev => ({
+      let key = '';
+      if (activeTab === 'tools' && selectedTool) key = getUniqueKey('tool', selectedTool.name);
+      else if (activeTab === 'prompts' && selectedPrompt) key = getUniqueKey('prompt', selectedPrompt.name);
+      else return;
+
+      setItemStates(prev => ({
           ...prev,
-          [selectedTool.name]: {
-              ...(prev[selectedTool.name] || { result: null }),
+          [key]: {
+              ...(prev[key] || { result: null }),
               argsJson
           }
       }));
   };
 
-  const handleExecuteTool = async (args: any) => {
-    if (!selectedTool) return;
+  const handleExecute = async (args: any) => {
+    let method = '';
+    let params: any = {};
+    let key = '';
+    let name = '';
+
+    if (activeTab === 'tools' && selectedTool) {
+        method = 'tools/call';
+        params = { name: selectedTool.name, arguments: args };
+        key = getUniqueKey('tool', selectedTool.name);
+        name = selectedTool.name;
+    } else if (activeTab === 'prompts' && selectedPrompt) {
+        method = 'prompts/get';
+        params = { name: selectedPrompt.name, arguments: args };
+        key = getUniqueKey('prompt', selectedPrompt.name);
+        name = selectedPrompt.name;
+    } else {
+        return;
+    }
+
     setIsExecuting(true);
     
     try {
-        const result = await mcpClient.current.sendRequest('tools/call', {
-            name: selectedTool.name,
-            arguments: args
-        });
-        addLog({ type: 'response', direction: 'in', summary: `Tool Executed: ${selectedTool.name}`, details: result, meta: connectionContext.current });
+        const result = await mcpClient.current.sendRequest(method, params);
+        addLog({ type: 'response', direction: 'in', summary: `${activeTab === 'tools' ? 'Tool' : 'Prompt'} Executed: ${name}`, details: result, meta: connectionContext.current });
         
-        setToolStates(prev => ({
+        setItemStates(prev => ({
             ...prev,
-            [selectedTool.name]: {
-                argsJson: prev[selectedTool.name]?.argsJson || JSON.stringify(args, null, 2),
+            [key]: {
+                argsJson: prev[key]?.argsJson || JSON.stringify(args, null, 2),
                 result: { status: 'success', data: result }
             }
         }));
@@ -315,15 +382,15 @@ const App: React.FC = () => {
         addLog({ 
             type: 'error', 
             direction: 'in', 
-            summary: `Tool Execution Failed`, 
+            summary: `Execution Failed: ${name}`, 
             details: serialized, 
             meta: connectionContext.current 
         });
         
-        setToolStates(prev => ({
+        setItemStates(prev => ({
             ...prev,
-            [selectedTool.name]: {
-                 argsJson: prev[selectedTool.name]?.argsJson || JSON.stringify(args, null, 2),
+            [key]: {
+                 argsJson: prev[key]?.argsJson || JSON.stringify(args, null, 2),
                  result: { status: 'error', data: serialized }
             }
         }));
@@ -332,7 +399,52 @@ const App: React.FC = () => {
     }
   };
 
-  const currentToolState = selectedTool ? toolStates[selectedTool.name] : null;
+  const handleReadResource = async (uri: string) => {
+      if (!selectedResource) return;
+      const key = getUniqueKey('resource', selectedResource.name);
+      
+      setIsExecuting(true);
+      try {
+        const result = await mcpClient.current.sendRequest('resources/read', { uri });
+        addLog({ type: 'response', direction: 'in', summary: `Resource Read: ${selectedResource.name}`, details: result, meta: connectionContext.current });
+
+        setItemStates(prev => ({
+            ...prev,
+            [key]: {
+                argsJson: '{}', // Resources typically don't have user-args
+                result: { status: 'success', data: result }
+            }
+        }));
+      } catch (e: any) {
+        const serialized = serializeError(e);
+        addLog({ 
+            type: 'error', 
+            direction: 'in', 
+            summary: `Read Failed: ${selectedResource.name}`, 
+            details: serialized, 
+            meta: connectionContext.current 
+        });
+        
+        setItemStates(prev => ({
+            ...prev,
+            [key]: {
+                 argsJson: '{}',
+                 result: { status: 'error', data: serialized }
+            }
+        }));
+      } finally {
+        setIsExecuting(false);
+    }
+  }
+
+  // Determine current active item and state
+  let currentItem: McpTool | McpResource | McpPrompt | null = null;
+  if (activeTab === 'tools') currentItem = selectedTool;
+  else if (activeTab === 'resources') currentItem = selectedResource;
+  else if (activeTab === 'prompts') currentItem = selectedPrompt;
+
+  const currentStateKey = currentItem ? getUniqueKey(activeTab === 'tools' ? 'tool' : activeTab === 'resources' ? 'resource' : 'prompt', currentItem.name) : null;
+  const currentItemState = currentStateKey ? itemStates[currentStateKey] : null;
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-200 font-sans transition-colors duration-200">
@@ -352,10 +464,14 @@ const App: React.FC = () => {
             <Panel defaultSize={20} minSize={15} maxSize={30} className="flex flex-col">
                 <Sidebar 
                     tools={tools} 
-                    selectedTool={selectedTool} 
-                    onSelectTool={handleSelectTool}
-                    loading={loadingTools}
+                    resources={resources}
+                    prompts={prompts}
+                    selectedItem={currentItem} 
+                    onSelectItem={handleSelectItem}
+                    loading={loadingItems}
                     lang={lang}
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
                 />
             </Panel>
             
@@ -365,12 +481,14 @@ const App: React.FC = () => {
                 <PanelGroup direction="vertical">
                     <Panel defaultSize={60} minSize={30} className="flex flex-col">
                          <RequestPanel 
-                            tool={selectedTool} 
-                            onExecute={handleExecuteTool}
+                            item={currentItem}
+                            type={activeTab}
+                            onExecute={handleExecute}
+                            onReadResource={handleReadResource}
                             isExecuting={isExecuting}
                             lang={lang}
-                            response={currentToolState?.result || null}
-                            savedArgs={currentToolState?.argsJson || '{}'}
+                            response={currentItemState?.result || null}
+                            savedArgs={currentItemState?.argsJson || '{}'}
                             onArgsChange={handleArgsChange}
                          />
                     </Panel>
