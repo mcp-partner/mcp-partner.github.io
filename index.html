@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MCP Postman</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              gray: {
+                50: '#f9fafb',
+                100: '#f3f4f6',
+                200: '#e5e7eb',
+                300: '#d1d5db',
+                400: '#9ca3af',
+                500: '#6b7280',
+                600: '#4b5563',
+                700: '#374151',
+                750: '#2d3748',
+                800: '#1f2937',
+                850: '#1a202c',
+                900: '#111827',
+                950: '#0d1117',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Custom scrollbar for webkit */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        @apply bg-gray-100 dark:bg-gray-900;
+      }
+      ::-webkit-scrollbar-thumb {
+        @apply bg-gray-300 dark:bg-gray-600 rounded;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        @apply bg-gray-400 dark:bg-gray-500;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom": "https://aistudiocdn.com/react-dom@18.3.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@18.3.1/",
+    "react": "https://aistudiocdn.com/react@18.3.1",
+    "react/": "https://aistudiocdn.com/react@18.3.1/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@0.344.0",
+    "react-resizable-panels": "https://aistudiocdn.com/react-resizable-panels@2.0.19"
+  }
+}
+</script>
+</head>
+  <body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-200 transition-colors duration-200">
+    <div id="root"></div>
+  </body>
+</html>
