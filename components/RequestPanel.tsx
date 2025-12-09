@@ -362,8 +362,14 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({ tool, onExecute, isE
 
         {/* Full Description Modal */}
         {showDescModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                <div className="bg-white dark:bg-gray-850 rounded-lg shadow-xl w-full max-w-2xl flex flex-col max-h-[85vh] border border-gray-200 dark:border-gray-700 animate-in fade-in zoom-in-95 duration-200">
+            <div 
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+                onClick={() => setShowDescModal(false)}
+            >
+                <div 
+                    className="bg-white dark:bg-gray-850 rounded-lg shadow-xl w-full max-w-2xl flex flex-col max-h-[85vh] border border-gray-200 dark:border-gray-700 animate-in fade-in zoom-in-95 duration-200"
+                    onClick={(e) => e.stopPropagation()}
+                >
                     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
                         <h3 className="font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                             <Info className="w-4 h-4 text-blue-500" />

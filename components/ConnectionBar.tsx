@@ -1,6 +1,7 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ConnectionStatus, Language, Theme } from '../types';
-import { Plug, Unplug, Loader2, Moon, Sun, Settings, Globe, List, Plus, Trash2, History, Save, MoreVertical, Monitor, Languages, Shield, ShieldCheck } from 'lucide-react';
+import { Plug, Unplug, Loader2, Moon, Sun, Settings, Globe, List, Plus, Trash2, History, Save, MoreVertical, Monitor, Languages, Shield, ShieldCheck, ArrowRightLeft, Copy, Check, X } from 'lucide-react';
 import { translations } from '../utils/i18n';
 
 interface ConnectionBarProps {
@@ -47,6 +48,11 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
 
   // Saved Configs state
   const [savedConfigs, setSavedConfigs] = useState<SavedConfig[]>([]);
+
+  // Import/Export State
+  const [showImportExport, setShowImportExport] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [isCopied, setIsCopied] = useState(false);
 
   const settingsRef = useRef<HTMLDivElement>(null);
   const headersRef = useRef<HTMLDivElement>(null);
@@ -173,6 +179,32 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
   const deleteConfig = (e: React.MouseEvent, id: string) => {
       e.stopPropagation();
       setSavedConfigs(savedConfigs.filter(c => c.id !== id));
+  };
+
+  // Import / Export Logic
+  const handleOpenImportExport = () => {
+      setImportText(JSON.stringify(savedConfigs, null, 2));
+      setShowImportExport(true);
+      setShowGlobalMenu(false);
+      setIsCopied(false);
+  };
+
+  const handleCopyConfig = () => {
+      navigator.clipboard.writeText(importText);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  const handleSaveAndReload = () => {
+      try {
+          const parsed = JSON.parse(importText);
+          if (!Array.isArray(parsed)) throw new Error("Root element must be an array");
+          
+          localStorage.setItem('mcp_saved_configs', JSON.stringify(parsed));
+          window.location.reload();
+      } catch (e) {
+          alert(t.invalidJson);
+      }
   };
 
   return (
@@ -421,10 +453,73 @@ export const ConnectionBar: React.FC<ConnectionBarProps> = ({
                        </div>
                        {theme === 'light' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
                    </button>
+
+                    {/* Import/Export Toggle */}
+                    <button 
+                      type="button"
+                      onClick={handleOpenImportExport}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between border-t border-gray-100 dark:border-gray-700"
+                   >
+                       <div className="flex items-center gap-2">
+                           <ArrowRightLeft className="w-4 h-4" />
+                           {t.importExport}
+                       </div>
+                   </button>
                </div>
            )}
         </div>
       </form>
+
+      {/* Import/Export Modal */}
+      {showImportExport && (
+            <div 
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+                onClick={() => setShowImportExport(false)}
+            >
+                <div 
+                    className="bg-white dark:bg-gray-850 rounded-lg shadow-xl w-full max-w-lg flex flex-col max-h-[85vh] border border-gray-200 dark:border-gray-700 animate-in fade-in zoom-in-95 duration-200"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
+                        <h3 className="font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                            <ArrowRightLeft className="w-4 h-4 text-blue-500" />
+                            {t.importExportTitle}
+                        </h3>
+                        <button 
+                            onClick={() => setShowImportExport(false)}
+                            className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                            title={t.close}
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                    <div className="p-4 flex flex-col gap-2">
+                         <p className="text-sm text-gray-500 dark:text-gray-400">{t.importExportDesc}</p>
+                         <textarea 
+                             className="w-full h-64 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-200 font-mono text-xs p-3 rounded border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                             value={importText}
+                             onChange={(e) => setImportText(e.target.value)}
+                         />
+                    </div>
+                    <div className="p-3 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2 shrink-0 bg-gray-50 dark:bg-gray-850 rounded-b-lg">
+                         <button 
+                            onClick={handleCopyConfig}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        >
+                            {isCopied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                            {isCopied ? t.copied : t.copy}
+                        </button>
+                         <button 
+                            onClick={handleSaveAndReload}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-500 transition-colors"
+                        >
+                            <Save className="w-4 h-4" />
+                            {t.saveAndReload}
+                        </button>
+                    </div>
+                </div>
+            </div>
+      )}
     </div>
   );
 };

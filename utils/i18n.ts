@@ -68,6 +68,11 @@ export const translations = {
     viewFullDescription: 'View Full Description',
     toolDescription: 'Tool Description',
     close: 'Close',
+    importExport: 'Import / Export',
+    importExportTitle: 'Config Import / Export',
+    importExportDesc: 'Edit the JSON below to import configurations, or copy it to export.',
+    saveAndReload: 'Save & Reload',
+    invalidJson: 'Invalid JSON format',
   },
   zh: {
     appTitle: 'MCP 调试助手',
@@ -135,5 +140,10 @@ export const translations = {
     viewFullDescription: '查看完整介绍',
     toolDescription: '工具介绍',
     close: '关闭',
+    importExport: '导入 / 导出',
+    importExportTitle: '配置导入 / 导出',
+    importExportDesc: '编辑下方 JSON 以导入配置，或复制内容以导出。',
+    saveAndReload: '保存并重载',
+    invalidJson: 'JSON 格式无效',
   }
 };
