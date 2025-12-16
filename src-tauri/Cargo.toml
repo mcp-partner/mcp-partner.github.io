@@ -1,0 +1,16 @@
+[package]
+name = "mcp-partner"
+version = "0.5.2"
+description = "MCP Partner Desktop Application"
+authors = ["Your Name"]
+license = ""
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["shell-open"] }
+
+[features]
+default = ["custom-protocol"]
