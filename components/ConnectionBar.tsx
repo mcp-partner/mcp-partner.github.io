@@ -40,7 +40,11 @@ const isVercelOrLocal = typeof window !== 'undefined' && (
     window.location.hostname.includes('127.0.0.1')
 );
 
-const DEFAULT_PROXY_URL = isVercelOrLocal ? '/cors?url=' : 'https://corsproxy.io/?url=';
+// Detect if running in Wails environment
+const isWails = typeof window !== 'undefined' && window['wails'];
+const WAILS_PROXY_URL = 'http://127.0.0.1:36875/?url=';
+
+const DEFAULT_PROXY_URL = isWails ? WAILS_PROXY_URL : (isVercelOrLocal ? '/cors?url=' : 'https://corsproxy.io/?url=');
 
 // Helper for normalization
 const normalizeTransport = (t: string | undefined | null): TransportType => {
@@ -137,6 +141,15 @@ export const ConnectionBar = forwardRef<ConnectionBarRef, ConnectionBarProps>(({
   
   // Persist Global Proxy Setting
   useEffect(() => { localStorage.setItem('mcp_default_proxy_url', globalProxyPrefix); }, [globalProxyPrefix]);
+
+  // Force proxy settings when running in Wails environment
+  useEffect(() => {
+    if (isWails) {
+      setUseProxy(true);
+      setProxyPrefix(WAILS_PROXY_URL);
+      setGlobalProxyPrefix(WAILS_PROXY_URL);
+    }
+  }, []);
 
   // Expose methods to parent
   useImperativeHandle(ref, () => ({
@@ -713,11 +726,16 @@ export const ConnectionBar = forwardRef<ConnectionBarRef, ConnectionBarProps>(({
                             {t.proxySettings}
                         </h3>
                         <div className="space-y-4">
+                            {isWails && (
+                                <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-md border border-amber-200 dark:border-amber-800">
+                                    当前使用 wails cors proxy
+                                </div>
+                            )}
                             <label className="flex items-center justify-between cursor-pointer">
                                 <span className="text-sm text-gray-700 dark:text-gray-300">{t.useProxy}</span>
                                 <div className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" className="sr-only peer" checked={useProxy} onChange={e => setUseProxy(e.target.checked)} />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-500"></div>
+                                    <input type="checkbox" className="sr-only peer" checked={useProxy} onChange={e => setUseProxy(e.target.checked)} disabled={isWails} />
+                                    <div className={`w-11 h-6 ${isWails ? 'bg-gray-300 dark:bg-gray-600' : 'bg-gray-200 dark:bg-gray-700'} peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${isWails ? 'peer-checked:bg-gray-400' : 'peer-checked:bg-green-500'}`}></div>
                                 </div>
                             </label>
                             
@@ -725,11 +743,12 @@ export const ConnectionBar = forwardRef<ConnectionBarRef, ConnectionBarProps>(({
                                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">{t.proxyPrefix}</label>
                                 <input 
                                     type="text" 
-                                    className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-200 text-sm rounded-md p-2 focus:ring-green-500 focus:border-green-500"
+                                    className={`w-full ${isWails ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-500' : 'bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-200'} border border-gray-300 dark:border-gray-600 text-sm rounded-md p-2 focus:ring-green-500 focus:border-green-500`}
                                     value={proxyPrefix}
                                     onChange={e => setProxyPrefix(e.target.value)}
                                     onKeyDown={handleEnterKey}
                                     placeholder={`Default: ${globalProxyPrefix}`}
+                                    disabled={isWails}
                                 />
                                 <a 
                                   href="https://github.com/Ericwyn/pancors" 
@@ -833,12 +852,18 @@ export const ConnectionBar = forwardRef<ConnectionBarRef, ConnectionBarProps>(({
 
                    <div className="px-4 py-2.5 border-t border-gray-100 dark:border-gray-700">
                         <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">{t.defaultProxy}</label>
+                        {isWails && (
+                            <div className="text-[10px] text-amber-600 dark:text-amber-400 mb-1.5">
+                                当前使用 wails cors proxy
+                            </div>
+                        )}
                         <input 
                             type="text"
                             value={globalProxyPrefix}
                             onChange={(e) => setGlobalProxyPrefix(e.target.value)}
                             onKeyDown={handleEnterKey}
-                            className="w-full text-xs px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
+                            className={`w-full text-xs px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 ${isWails ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-500' : 'bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-200'} focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400`}
+                            disabled={isWails}
                         />
                    </div>
 

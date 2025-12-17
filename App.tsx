@@ -204,6 +204,13 @@ const App: React.FC = () => {
     };
   }, [messageHandler, errorHandler]);
 
+  // 新增：判断是否在 Wails 环境并弹出 alert
+  useEffect(() => {
+    // 确保在浏览器环境下判断，避免 SSR 报错
+    if (typeof window !== 'undefined' && window['wails']) {
+      console.log('当前运行在 Wails 环境中');
+    }
+  }, []);
 
   const handleConnect = async (url: string, proxyConfig: ProxyConfig, headers: Record<string, string>, transport: TransportType) => {
     // Save connection context for logging
