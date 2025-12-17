@@ -3,6 +3,7 @@ import { X, ExternalLink, Github, Book } from 'lucide-react';
 import { translations } from '../utils/i18n';
 import { Language } from '../types';
 import { APP_VERSION, REPO_URL } from '../constants';
+import { openUrl } from '../utils/openUrl';
 
 interface AboutModalProps {
     onClose: () => void;
@@ -54,6 +55,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose, lang }) => {
                         href="docs.html" 
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => { if (openUrl('https://ericwyn.github.io/mcp-partner/docs.html')) e.preventDefault(); }}
                         className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-semibold rounded-xl transition-all group"
                     >
                         <Book className="w-4 h-4 group-hover:scale-110 transition-transform" />
@@ -62,11 +64,12 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose, lang }) => {
 
                     <div className="border-t border-gray-100 dark:border-gray-700 pt-4 mt-2">
                         <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-                            <span>{t.createdBy} <a href="https://github.com/Ericwyn" target="_blank" className="font-medium text-gray-900 dark:text-gray-200 hover:underline">@Ericwyn</a></span>
+                            <span>{t.createdBy} <a href="https://github.com/Ericwyn" target="_blank" onClick={(e) => { if (openUrl('https://github.com/Ericwyn')) e.preventDefault(); }} className="font-medium text-gray-900 dark:text-gray-200 hover:underline">@Ericwyn</a></span>
                             <a 
                                 href={REPO_URL} 
                                 target="_blank"
                                 rel="noopener noreferrer" 
+                                onClick={(e) => { if (openUrl(REPO_URL)) e.preventDefault(); }}
                                 className="flex items-center gap-1 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
                             >
                                 <Github className="w-3.5 h-3.5" />

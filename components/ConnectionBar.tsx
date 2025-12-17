@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } f
 import { ConnectionStatus, Language, Theme, McpPartnerConfig, McpServerConfig, McpExtensionConfig, TransportType } from '../types';
 import { Plug, Unplug, Settings, Plus, Trash2, History, Save, Monitor, Languages, Shield, ShieldCheck, Check, X, FileJson, Pencil, HardDrive, ChevronDown, List, Copy, Sun, Moon, Info, Clock, ExternalLink } from 'lucide-react';
 import { translations } from '../utils/i18n';
+import { openUrl } from '../utils/openUrl';
 import { AboutModal } from './AboutModal';
 
 export interface ConnectionBarRef {
@@ -754,6 +755,7 @@ export const ConnectionBar = forwardRef<ConnectionBarRef, ConnectionBarProps>(({
                                   href="https://github.com/Ericwyn/pancors" 
                                   target="_blank" 
                                   rel="noopener noreferrer"
+                                  onClick={(e) => { if (openUrl('https://github.com/Ericwyn/pancors')) e.preventDefault(); }}
                                   className="block mt-1.5 text-[10px] text-blue-500 hover:text-blue-600 hover:underline text-right"
                                 >
                                   {t.deployPancors}

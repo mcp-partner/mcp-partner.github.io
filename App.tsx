@@ -12,6 +12,7 @@ import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import { Github } from 'lucide-react';
 import { APP_VERSION, REPO_URL } from './constants';
 import { translations } from './utils/i18n';
+import { openUrl } from './utils/openUrl';
 
 interface ItemState {
     argsJson: string; // Used for Tools and Prompts inputs
@@ -607,10 +608,10 @@ const App: React.FC = () => {
             v{APP_VERSION}
             </span>
             <span>
-              Author: <a href="https://github.com/Ericwyn" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">@Ericwyn</a>
+              Author: <a href="https://github.com/Ericwyn" target="_blank" rel="noopener noreferrer" onClick={(e) => { if (openUrl('https://github.com/Ericwyn')) e.preventDefault(); }} className="hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">@Ericwyn</a>
             </span>
           </div>
-          <a href={REPO_URL} target="_blank" rel="noopener noreferrer" className="hover:text-gray-800 dark:hover:text-gray-300 transition-colors flex items-center gap-1.5 group">
+          <a href={REPO_URL} target="_blank" rel="noopener noreferrer" onClick={(e) => { if (openUrl(REPO_URL)) e.preventDefault(); }} className="hover:text-gray-800 dark:hover:text-gray-300 transition-colors flex items-center gap-1.5 group">
              <Github className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
              <span>github.com/Ericwyn/mcp-partner</span>
           </a>
