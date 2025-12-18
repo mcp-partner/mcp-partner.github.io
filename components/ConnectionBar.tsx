@@ -729,17 +729,20 @@ export const ConnectionBar = forwardRef<ConnectionBarRef, ConnectionBarProps>(({
                         <div className="space-y-4">
                             {isWails && (
                                 <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-md border border-amber-200 dark:border-amber-800">
-                                    当前使用 wails cors proxy
+                                  {t.useDesktopProxySettings}
                                 </div>
                             )}
-                            <label className="flex items-center justify-between cursor-pointer">
+
+                            {!isWails && (
+                              <label className="flex items-center justify-between cursor-pointer">
                                 <span className="text-sm text-gray-700 dark:text-gray-300">{t.useProxy}</span>
                                 <div className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" className="sr-only peer" checked={useProxy} onChange={e => setUseProxy(e.target.checked)} disabled={isWails} />
-                                    <div className={`w-11 h-6 ${isWails ? 'bg-gray-300 dark:bg-gray-600' : 'bg-gray-200 dark:bg-gray-700'} peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${isWails ? 'peer-checked:bg-gray-400' : 'peer-checked:bg-green-500'}`}></div>
+                                  <input type="checkbox" className="sr-only peer" checked={useProxy} onChange={e => setUseProxy(e.target.checked)} disabled={isWails} />
+                                  <div className={`w-11 h-6 ${isWails ? 'bg-gray-300 dark:bg-gray-600' : 'bg-gray-200 dark:bg-gray-700'} peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${isWails ? 'peer-checked:bg-gray-400' : 'peer-checked:bg-green-500'}`}></div>
                                 </div>
-                            </label>
-                            
+                              </label>
+                            )}
+
                             <div className={useProxy ? 'opacity-100' : 'opacity-50 pointer-events-none'}>
                                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">{t.proxyPrefix}</label>
                                 <input 
@@ -751,7 +754,8 @@ export const ConnectionBar = forwardRef<ConnectionBarRef, ConnectionBarProps>(({
                                     placeholder={`Default: ${globalProxyPrefix}`}
                                     disabled={isWails}
                                 />
-                                <a 
+                              {!isWails && (
+                                <a
                                   href="https://github.com/Ericwyn/pancors" 
                                   target="_blank" 
                                   rel="noopener noreferrer"
@@ -760,6 +764,7 @@ export const ConnectionBar = forwardRef<ConnectionBarRef, ConnectionBarProps>(({
                                 >
                                   {t.deployPancors}
                                 </a>
+                              )}
                             </div>
                         </div>
                     </div>
@@ -856,7 +861,7 @@ export const ConnectionBar = forwardRef<ConnectionBarRef, ConnectionBarProps>(({
                         <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">{t.defaultProxy}</label>
                         {isWails && (
                             <div className="text-[10px] text-amber-600 dark:text-amber-400 mb-1.5">
-                                当前使用 wails cors proxy
+                              {t.useDesktopProxySettings}
                             </div>
                         )}
                         <input 
