@@ -1,17 +1,26 @@
 # MCP Partner
 
+![Version](https://img.shields.io/badge/version-0.6.1-green.svg)
+
 [English](README_en.md) | 中文
 
 一个类似 Postman 的工具，用于通过 SSE (Server-Sent Events) 或 Streamable HTTP 测试和交互 Model Context Protocol (MCP) 服务器。
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FEricwyn%2Fmcp-partner)
 
 点击此处直接访问
 
-[https://ericwyn.github.io/mcp-partner](https://ericwyn.github.io/mcp-partner)
+- [https://mcp-partner.github.io](https://mcp-partner.github.io)
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-0.3.0-green.svg)
+
+使用 Vercel 部署
+  - [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FEricwyn%2Fmcp-partner)
+
+
+
+## Desktop 应用
+Mcp Partner 还提供基于 wails 打包的桌面应用，支持 Windows、macOS 和 Linux 平台。
+
+自带 cors proxy 功能, 解决浏览器跨域问题
 
 ## 功能特性
 

@@ -613,7 +613,7 @@ const App: React.FC = () => {
           </div>
           <a href={REPO_URL} target="_blank" rel="noopener noreferrer" onClick={(e) => { if (openUrl(REPO_URL)) e.preventDefault(); }} className="hover:text-gray-800 dark:hover:text-gray-300 transition-colors flex items-center gap-1.5 group">
              <Github className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
-             <span>github.com/Ericwyn/mcp-partner</span>
+             <span>mcp-partner</span>
           </a>
       </footer>
     </div>
