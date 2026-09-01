@@ -1,6 +1,6 @@
 # MCP Partner
 
-![Version](https://img.shields.io/badge/version-0.6.2-green.svg)
+![Version](https://img.shields.io/badge/version-0.7.0-green.svg)
 
 English | [中文](README.md)
 
