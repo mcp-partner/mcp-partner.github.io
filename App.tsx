@@ -9,7 +9,7 @@ import { SseMcpClient } from './services/sseMcpClient';
 import { StreamableHttpMcpClient } from './services/streamableHttpMcpClient';
 import { ConnectionStatus, LogEntry, McpTool, McpResource, McpPrompt, JsonRpcMessage, Language, Theme, TransportType, McpServerConfig, McpExtensionConfig } from './types';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
-import { Github } from 'lucide-react';
+import { Github, ShieldAlert } from 'lucide-react';
 import { APP_VERSION, REPO_URL } from './constants';
 import { translations } from './utils/i18n';
 import { openUrl } from './utils/openUrl';
@@ -47,7 +47,19 @@ const normalizeTransport = (t: string | undefined | null): TransportType => {
     return 'streamable_http';
 };
 
+const INSECURE_BROWSER_WARNING_DISMISSED_KEY = 'mcp-partner.insecureBrowserWarning.dismissed.v1';
+
 const App: React.FC = () => {
+  const isInsecureBrowserMode = typeof window !== 'undefined'
+      && new URLSearchParams(window.location.search).get('unsafe-cors-bypass') === '1';
+  const [showInsecureBrowserWarning, setShowInsecureBrowserWarning] = useState(() => {
+      if (!isInsecureBrowserMode) return false;
+      try {
+          return window.localStorage.getItem(INSECURE_BROWSER_WARNING_DISMISSED_KEY) !== '1';
+      } catch {
+          return true;
+      }
+  });
   const [status, setStatus] = useState<ConnectionStatus>(ConnectionStatus.DISCONNECTED);
   
   // Collections
@@ -110,9 +122,10 @@ const App: React.FC = () => {
       }
   });
 
-  // Client ref, initialized with default SSE but can be swapped
-  const mcpClient = useRef<IMcpClient>(new SseMcpClient());
-  const activeTransport = useRef<TransportType>('sse');
+  // Client ref follows the recommended default and is swapped for legacy SSE
+  // only when the user selects that compatibility transport.
+  const mcpClient = useRef<IMcpClient>(new StreamableHttpMcpClient());
+  const activeTransport = useRef<TransportType>('streamable_http');
   const connectionBarRef = useRef<ConnectionBarRef>(null);
   
   // Store connection context to attach to logs
@@ -155,16 +168,15 @@ const App: React.FC = () => {
   // Generic message handler for logging
   const messageHandler = useCallback((msg: JsonRpcMessage, meta?: any) => {
         let summary = 'Unknown Message';
-        let direction: 'in' | 'out' = 'in';
+        let direction: 'in' | 'out' = meta?.direction === 'out' ? 'out' : 'in';
         let type: 'request' | 'response' | 'notification' | 'info' = 'info';
 
         if ('method' in msg && !('id' in msg)) {
             type = 'notification';
-            summary = `Notification: ${msg.method}`;
+            summary = `${direction === 'out' ? 'Notification' : 'Server notification'}: ${msg.method}`;
         } else if ('method' in msg && 'id' in msg) {
             type = 'request';
-            direction = 'out';
-            summary = `Request (${msg.id}): ${msg.method}`;
+            summary = `${direction === 'out' ? 'Request' : 'Server request'} (${msg.id}): ${msg.method}`;
         } else if ('result' in msg || 'error' in msg) {
             type = 'response';
             const id = (msg as any).id;
@@ -254,26 +266,9 @@ const App: React.FC = () => {
           type: 'info', 
           direction: 'local', 
           summary: 'Connected.',
+          details: mcpClient.current.getConnectionInfo(),
           meta: connectionContext.current
       });
-      
-      // SSE Client needs manual initialization flow, HTTP Client (SDK) handles it internally
-      if (transport === 'sse') {
-          addLog({ type: 'info', direction: 'local', summary: 'Sending initialize...', meta: connectionContext.current });
-          const initResult = await mcpClient.current.sendRequest('initialize', {
-              protocolVersion: '2024-11-05',
-              capabilities: {},
-              clientInfo: {
-                  name: 'mcp-partner-web',
-                  version: '1.0.0'
-              }
-          });
-          addLog({ type: 'info', direction: 'in', summary: 'Initialized', details: initResult, meta: connectionContext.current });
-
-          // Send initialized notification
-          addLog({ type: 'info', direction: 'local', summary: 'Sending initialized notification...', meta: connectionContext.current });
-          await mcpClient.current.sendNotification('notifications/initialized');
-      }
 
       // Fetch capabilities
       fetchAllCapabilities();
@@ -288,9 +283,10 @@ const App: React.FC = () => {
       const t = translations[lang];
 
       // Heuristic for CORS/Network error
-      const isNetworkError = e instanceof TypeError && (
-          e.message.match(/Failed to fetch|NetworkError|Load failed|Network request failed/i)
-      );
+      const errorText = [e?.message, e?.cause?.message]
+          .filter(Boolean)
+          .join(' ');
+      const isNetworkError = /Failed to fetch|fetch failed|NetworkError|Load failed|Network request failed/i.test(errorText);
       
       const isCorsLikely = isNetworkError && !proxyConfig.enabled;
 
@@ -535,8 +531,33 @@ const App: React.FC = () => {
   const currentStateKey = currentItem ? getUniqueKey(activeTab === 'tools' ? 'tool' : activeTab === 'resources' ? 'resource' : 'prompt', currentItem.name) : null;
   const currentItemState = currentStateKey ? itemStates[currentStateKey] : null;
 
+  const dismissInsecureBrowserWarning = () => {
+      setShowInsecureBrowserWarning(false);
+      try {
+          window.localStorage.setItem(INSECURE_BROWSER_WARNING_DISMISSED_KEY, '1');
+      } catch {
+          // The warning still closes for this page when browser storage is unavailable.
+      }
+  };
+
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-200 font-sans transition-colors duration-200">
+      {showInsecureBrowserWarning && (
+        <div
+          role="alert"
+          className="shrink-0 flex items-center justify-center gap-2 px-4 py-2 bg-amber-100 text-amber-950 dark:bg-amber-950 dark:text-amber-100 border-b border-amber-300 dark:border-amber-800 text-xs font-medium"
+        >
+          <ShieldAlert className="w-4 h-4 shrink-0" />
+          <span>{translations[lang].insecureBrowserWarning}</span>
+          <button
+            type="button"
+            onClick={dismissInsecureBrowserWarning}
+            className="shrink-0 ml-2 px-2.5 py-1 rounded-md border border-amber-500/70 hover:bg-amber-200 dark:hover:bg-amber-900 transition-colors font-semibold"
+          >
+            {translations[lang].insecureBrowserWarningDismiss}
+          </button>
+        </div>
+      )}
       <ConnectionBar 
         ref={connectionBarRef}
         status={status} 

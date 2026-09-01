@@ -11,7 +11,13 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg'],
+      includeAssets: [
+        'icon.svg',
+        'icon_128px.png',
+        'icon_256px.png',
+        'icon_512px.png',
+        'icon_256px.ico'
+      ],
       manifest: {
         name: 'MCP Partner',
         short_name: 'MCP Partner',
@@ -26,7 +32,25 @@ export default defineConfig({
             src: 'icon.svg',
             sizes: 'any',
             type: 'image/svg+xml',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: 'icon_128px.png',
+            sizes: '128x128',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: 'icon_256px.png',
+            sizes: '256x256',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: 'icon_512px.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any'
           }
         ]
       },

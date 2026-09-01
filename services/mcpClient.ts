@@ -9,6 +9,17 @@ export interface ProxyConfig {
   prefix: string;
 }
 
+export interface McpConnectionInfo {
+  transport: 'sse' | 'streamable_http';
+  protocolEra?: 'legacy' | 'modern';
+  protocolVersion?: string;
+  serverInfo?: {
+    name: string;
+    version: string;
+    [key: string]: unknown;
+  };
+}
+
 /**
  * Interface defining the standard behavior for any MCP Client implementation
  * (e.g., SSE, Streamable HTTP, WebSocket).
@@ -36,6 +47,11 @@ export interface IMcpClient {
    * Sends a JSON-RPC Notification (no response expected).
    */
   sendNotification(method: string, params?: any): Promise<void>;
+
+  /**
+   * Returns the protocol details negotiated by the SDK for the active connection.
+   */
+  getConnectionInfo(): McpConnectionInfo | null;
 
   /**
    * Registers a callback for incoming messages.

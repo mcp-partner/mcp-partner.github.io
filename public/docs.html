@@ -7,13 +7,13 @@
     <meta name="description" content="MCP Partner 文档，在线 Model Context Protocol 客户端，支持 SSE 和 Streamable HTTP。">
     <link rel="icon" href="icon.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
         .prose h3 { margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; color: #1e293b; }
         .prose p { margin-bottom: 1rem; color: #475569; line-height: 1.6; }
-        .prose code { background-color: #f1f5f9; padding: 0.125rem 0.25rem; rounded: 0.25rem; font-size: 0.875em; color: #0f172a; font-family: monospace; }
-        .prose pre { background-color: #1e293b; color: #e2e8f0; padding: 1rem; rounded-lg; overflow-x: auto; margin-bottom: 1rem; }
+        .prose code { background-color: #f1f5f9; padding: 0.125rem 0.25rem; border-radius: 0.25rem; font-size: 0.875em; color: #0f172a; font-family: monospace; }
+        .prose pre { background-color: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 1rem; }
         .nav-link { color: #64748b; font-weight: 500; transition: color 0.2s; }
         .nav-link:hover { color: #2563eb; }
         .active-lang { color: #2563eb; font-weight: 700; background-color: #eff6ff; }
@@ -74,17 +74,17 @@
                 <div>
                     <h5 class="font-bold text-slate-900 mb-4">入门指南</h5>
                     <ul class="space-y-3 border-l border-slate-200 ml-1">
-                        <li><a href="#introduction" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">简介</a></li>
-                        <li><a href="#quick-start" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">快速开始</a></li>
-                        <li><a href="#features" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">功能特性</a></li>
+                        <li><a href="#introduction-zh" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">简介</a></li>
+                        <li><a href="#quick-start-zh" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">快速开始</a></li>
+                        <li><a href="#features-zh" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">功能特性</a></li>
                     </ul>
                 </div>
                 <div>
                     <h5 class="font-bold text-slate-900 mb-4">高级配置</h5>
                     <ul class="space-y-3 border-l border-slate-200 ml-1">
-                        <li><a href="#transports" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">传输协议 (SSE/HTTP)</a></li>
-                        <li><a href="#cors-proxy" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">CORS 跨域与代理</a></li>
-                        <li><a href="#settings" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">配置与持久化</a></li>
+                        <li><a href="#transports-zh" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">传输协议 (SSE/HTTP)</a></li>
+                        <li><a href="#cors-proxy-zh" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">CORS 跨域与代理</a></li>
+                        <li><a href="#browser-shell-zh" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">桌面浏览器壳</a></li>
                     </ul>
                 </div>
             </div>
@@ -96,17 +96,17 @@
                 <div>
                     <h5 class="font-bold text-slate-900 mb-4">Getting Started</h5>
                     <ul class="space-y-3 border-l border-slate-200 ml-1">
-                        <li><a href="#introduction" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Introduction</a></li>
-                        <li><a href="#quick-start" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Quick Start</a></li>
-                        <li><a href="#features" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Features</a></li>
+                        <li><a href="#introduction-en" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Introduction</a></li>
+                        <li><a href="#quick-start-en" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Quick Start</a></li>
+                        <li><a href="#features-en" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Features</a></li>
                     </ul>
                 </div>
                 <div>
                     <h5 class="font-bold text-slate-900 mb-4">Configuration</h5>
                     <ul class="space-y-3 border-l border-slate-200 ml-1">
-                        <li><a href="#transports" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Transports (SSE/HTTP)</a></li>
-                        <li><a href="#cors-proxy" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">CORS & Proxy</a></li>
-                        <li><a href="#settings" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Settings & Persistence</a></li>
+                        <li><a href="#transports-en" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Transports (SSE/HTTP)</a></li>
+                        <li><a href="#cors-proxy-en" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">CORS &amp; Proxy</a></li>
+                        <li><a href="#browser-shell-en" class="nav-link block pl-4 -ml-px border-l border-transparent hover:border-blue-600">Desktop browser shell</a></li>
                     </ul>
                 </div>
             </div>
@@ -115,13 +115,13 @@
         <!-- Main Content (Chinese) -->
         <div id="content-zh" class="flex-1 prose max-w-none">
             
-            <section id="introduction" class="mb-16">
+            <section id="introduction-zh" class="mb-16">
                 <h1 class="text-4xl font-extrabold text-slate-900 mb-6">简介</h1>
                 <p class="text-lg text-slate-600 leading-relaxed">
                     MCP Partner 是一个用于调试和交互 <a href="https://modelcontextprotocol.io/" class="text-blue-600 underline" target="_blank">Model Context Protocol (MCP)</a> 的客户端工具。 
                     你可以把它看作是 "MCP 界的 Postman"。它允许开发人员连接到 MCP 服务器，发现可用工具，并通过直观的 UI 执行这些工具。
                     <br><br>
-                    <strong>新功能：</strong> 现已全面支持 <strong>Streamable HTTP</strong> 协议，为您提供更稳定、基于标准 HTTP流 的交互体验。
+                    <strong>新功能：</strong> 连接层已升级到官方 TypeScript SDK v2，可自动协商最新 <strong>2026-07-28 Streamable HTTP</strong>，并兼容 2025 legacy 与旧 HTTP+SSE 服务器。
                 </p>
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
                     <p class="text-blue-800 font-medium m-0">
@@ -130,7 +130,7 @@
                 </div>
             </section>
 
-            <section id="quick-start" class="mb-16 pt-8 border-t border-slate-100">
+            <section id="quick-start-zh" class="mb-16 pt-8 border-t border-slate-100">
                 <h2 class="text-3xl font-bold text-slate-900 mb-6">快速开始</h2>
                 
                 <div class="space-y-8">
@@ -151,7 +151,7 @@
                             <h3 class="text-xl font-bold text-slate-900 m-0">选择传输协议</h3>
                         </div>
                         <p>
-                            在地址栏左侧选择 <strong>SSE</strong> 或 <strong>Streamable HTTP</strong>。Streamable HTTP 提供了更现代的流式传输体验。
+                            优先选择 <strong>Streamable HTTP</strong>。只有使用 2024-11-05 独立 SSE + POST 端点的旧服务器才选择 <strong>SSE</strong>。
                         </p>
                     </div>
 
@@ -167,12 +167,12 @@
                 </div>
             </section>
 
-            <section id="features" class="mb-16 pt-8 border-t border-slate-100">
+            <section id="features-zh" class="mb-16 pt-8 border-t border-slate-100">
                 <h2 class="text-3xl font-bold text-slate-900 mb-6">核心功能</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
                         <h4 class="font-bold text-slate-900 mb-2">多协议支持</h4>
-                        <p class="text-sm text-slate-600 m-0">同时支持 SSE (Server-Sent Events) 和 Streamable HTTP 两种主流传输方式。</p>
+                        <p class="text-sm text-slate-600 m-0">官方 SDK v2 自动兼容 2026 modern、2025 legacy Streamable HTTP，并保留 deprecated HTTP+SSE。</p>
                     </div>
                     <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
                         <h4 class="font-bold text-slate-900 mb-2">GitHub Pages 支持</h4>
@@ -189,21 +189,21 @@
                 </div>
             </section>
 
-            <section id="transports" class="mb-16 pt-8 border-t border-slate-100">
+            <section id="transports-zh" class="mb-16 pt-8 border-t border-slate-100">
                 <h2 class="text-3xl font-bold text-slate-900 mb-6">传输协议支持</h2>
                 <div class="space-y-6">
                     <div>
                         <h3 class="text-lg font-bold text-slate-900">SSE (Server-Sent Events)</h3>
-                        <p>默认模式。客户端通过 <code>GET</code> 请求建立长连接接收事件，并从 <code>endpoint</code> 事件中发现用于发送请求的 <code>POST</code> 地址。</p>
+                        <p>旧协议兼容模式。客户端通过 <code>GET</code> 建立长连接，并从 <code>endpoint</code> 事件发现独立 <code>POST</code> 地址。该传输已被官方 deprecated。</p>
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-slate-900">Streamable HTTP</h3>
-                        <p>使用 MCP SDK 基于 HTTP POST 流的传输方式。适用于对标准 SSE 有限制的环境，或特定的服务器实现。该模式下，客户端通过 HTTP 流实时接收响应。</p>
+                        <p>推荐模式。官方 SDK 会自动探测协议代际：2026-07-28 使用每请求 POST、metadata header 与请求级 SSE；2025 服务器自动回退到 initialize、可选 session/GET 流模式。</p>
                     </div>
                 </div>
             </section>
 
-            <section id="cors-proxy" class="mb-16 pt-8 border-t border-slate-100">
+            <section id="cors-proxy-zh" class="mb-16 pt-8 border-t border-slate-100">
                 <h2 class="text-3xl font-bold text-slate-900 mb-6">CORS 跨域与代理</h2>
                 <p>
                     浏览器强制执行严格的 CORS (跨域资源共享) 策略。如果您的本地 MCP 服务器没有发送正确的 <code>Access-Control-Allow-Origin</code> 头，浏览器将阻止连接。
@@ -215,10 +215,10 @@
                 <h3 class="text-xl font-bold mb-3">解决方案</h3>
                 <ol class="list-decimal pl-5 space-y-2 text-slate-600">
                     <li>
-                        <strong>使用代理:</strong> 点击连接栏中的 🛡️ 图标并启用 "启用 CORS 代理"。如果您在 Vercel 部署，会自动使用内置代理；如果在 GitHub Pages，建议使用公共代理（默认配置）。
+                        <strong>使用代理:</strong> 点击连接栏中的 🛡️ 图标。Vercel 部署可使用安全加固的内置 <code>/cors?url=</code>；GitHub Pages 不提供代理函数，请配置可信代理或服务器 CORS。
                     </li>
                     <li>
-                        <strong>配置服务器:</strong> 确保您的 MCP 服务器在 SSE 和 POST 端点上都设置了 <code>Access-Control-Allow-Origin: *</code> (或指定域名)。
+                        <strong>配置服务器:</strong> 允许 MCP Partner 的实际 origin，并允许协议所需 method/header。需要 credentials 时不得使用通配 origin。
                     </li>
                     <li>
                         <strong>使用 Pancors:</strong> 对于频繁的本地开发，推荐运行本地代理工具如 <a href="https://github.com/Ericwyn/pancors" target="_blank" class="text-blue-600 underline">pancors</a>。
@@ -229,44 +229,44 @@
                 <h3 class="text-xl font-bold mb-3">服务器端 CORS 配置</h3>
                 <p>如果您是 MCP 服务器的开发者，建议在服务器端正确配置 CORS 响应头：</p>
                 <div class="bg-slate-100 rounded-lg p-4 mb-6">
-                    <pre class="text-sm"><code>// Go 语言示例
-w.Header().Set("Access-Control-Allow-Origin", "*")
-w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-w.Header().Set("Access-Control-Allow-Headers", "*")
-w.Header().Set("Access-Control-Expose-Headers", "*")
-w.Header().Set("Access-Control-Allow-Credentials", "true")</code></pre>
+                    <pre class="text-sm"><code>// 使用实际前端 origin；如需 credentials，不能使用 "*"
+w.Header().Set("Access-Control-Allow-Origin", "https://your-partner.example")
+w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type, Last-Event-ID, MCP-Protocol-Version, Mcp-Session-Id, Mcp-Method, Mcp-Name")
+w.Header().Set("Access-Control-Expose-Headers", "Content-Type, MCP-Protocol-Version, Mcp-Session-Id, Retry-After, WWW-Authenticate")
+w.Header().Add("Vary", "Origin")</code></pre>
                 </div>
 
                 <h4 class="text-lg font-bold mb-3">Header 作用说明：</h4>
                 <div class="space-y-3 mb-6">
                     <div class="flex items-start gap-3">
                         <div>
-                            <code class="font-semibold">Access-Control-Allow-Origin: *</code>
-                            <p class="text-sm text-slate-600 mt-1">允许任何域名的前端页面访问您的服务器（必需）</p>
+                            <code class="font-semibold">Access-Control-Allow-Origin</code>
+                            <p class="text-sm text-slate-600 mt-1">允许实际 MCP Partner origin；认证场景应使用精确 origin</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3">
                         <div>
                             <code class="font-semibold">Access-Control-Allow-Methods</code>
-                            <p class="text-sm text-slate-600 mt-1">允许的 HTTP 方法，MCP 主要使用 GET (SSE) 和 POST</p>
+                            <p class="text-sm text-slate-600 mt-1">2026 使用 POST；旧 Streamable/SSE 还可能使用 GET 与 DELETE</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3">
                         <div>
-                            <code class="font-semibold">Access-Control-Allow-Headers: *</code>
-                            <p class="text-sm text-slate-600 mt-1">允许前端发送自定义 header（如 Content-Type、Mcp-Session-Id）</p>
+                            <code class="font-semibold">Access-Control-Allow-Headers</code>
+                            <p class="text-sm text-slate-600 mt-1">还需允许 2026 的 MCP-Protocol-Version、Mcp-Method、Mcp-Name 与动态 Mcp-Param-* header</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3">
                         <div>
-                            <code class="font-semibold">Access-Control-Expose-Headers: *</code>
-                            <p class="text-sm text-slate-600 mt-1">允许前端读取响应头中的 mcp-session-id（关键）</p>
+                            <code class="font-semibold">Access-Control-Expose-Headers</code>
+                            <p class="text-sm text-slate-600 mt-1">让 SDK 读取 Content-Type、旧 session header 与 WWW-Authenticate</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3">
                         <div>
-                            <code class="font-semibold">Access-Control-Allow-Credentials: true</code>
-                            <p class="text-sm text-slate-600 mt-1">允许发送认证信息（可选，仅在需要认证时）</p>
+                            <code class="font-semibold">Vary: Origin</code>
+                            <p class="text-sm text-slate-600 mt-1">按请求 origin 动态返回 CORS 时避免缓存混淆</p>
                         </div>
                     </div>
                 </div>
@@ -276,13 +276,73 @@ w.Header().Set("Access-Control-Allow-Credentials", "true")</code></pre>
                     <li><strong>检查浏览器控制台错误</strong> - 打开开发者工具查看 Console 和 Network 标签页</li>
                     <li><strong>验证预检请求</strong> - 检查 OPTIONS 请求的响应头是否包含 CORS headers</li>
                     <li><strong>测试最小配置</strong> - 先用最基本的三个 header 测试连接</li>
-                    <li><strong>检查 Session ID 传递</strong> - 查看控制台是否有 `[HTTP] Session ID captured:` 日志</li>
+                    <li><strong>检查协商版本</strong> - Connected 日志会显示 modern/legacy 与实际 protocol version</li>
                 </ol>
 
             </section>
 
+            <section id="browser-shell-zh" class="mb-16 pt-8 border-t border-slate-100">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6">安装为桌面浏览器壳</h2>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <p class="text-blue-900 m-0"><strong>推荐：</strong>如果服务器 CORS 或代理已经可用，请直接点击 Chrome / Edge 地址栏中的安装图标来安装标准 PWA。图标由浏览器自动取得，所有安全机制保持开启。</p>
+                </div>
+
+                <p>GitHub Pages 不能运行服务端代理。对于你明确可信的开发服务，可以用下面的安装器创建一个独立 Chromium <code>--app</code> 窗口。它不是 Electron，不打包浏览器，不需要管理员权限，并会自动处理图标。</p>
+
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+                    <p class="text-red-900 font-bold m-0 text-sm">高风险模式：专用 profile 会关闭同源/CORS 保护。这个窗口只能打开 MCP Partner；不要登录账号、安装扩展或浏览其他网站。点击“不再显示”后，提示会永久关闭并保存在此专用 profile 中。</p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 mb-8">
+                    <div class="p-5 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="flex items-center justify-between gap-4 flex-wrap">
+                            <h3 class="text-xl font-bold m-0">Linux</h3>
+                            <a href="./launchers/install-linux.sh" download class="text-blue-600 font-semibold no-underline hover:underline">下载安装器</a>
+                        </div>
+                        <p class="text-sm">创建 <code>~/.local/share/applications</code> 启动项、用户级 wrapper 和主题图标，不再依赖 <code>/opt</code>。</p>
+                        <pre class="text-xs overflow-x-auto"><code>curl --proto '=https' --tlsv1.2 -fsSL https://mcp-partner.github.io/launchers/install-linux.sh -o /tmp/install-mcp-partner-linux.sh
+less /tmp/install-mcp-partner-linux.sh
+bash /tmp/install-mcp-partner-linux.sh</code></pre>
+                    </div>
+
+                    <div class="p-5 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="flex items-center justify-between gap-4 flex-wrap">
+                            <h3 class="text-xl font-bold m-0">macOS</h3>
+                            <a href="./launchers/install-macos.sh" download class="text-blue-600 font-semibold no-underline hover:underline">下载安装器</a>
+                        </div>
+                        <p class="text-sm">在 <code>~/Applications</code> 生成 shell-based <code>.app</code>，并自动将 PNG 转换成多尺寸 <code>.icns</code>。</p>
+                        <pre class="text-xs overflow-x-auto"><code>curl --proto '=https' --tlsv1.2 -fsSL https://mcp-partner.github.io/launchers/install-macos.sh -o /tmp/install-mcp-partner-macos.sh
+less /tmp/install-mcp-partner-macos.sh
+bash /tmp/install-mcp-partner-macos.sh</code></pre>
+                    </div>
+
+                    <div class="p-5 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="flex items-center justify-between gap-4 flex-wrap">
+                            <h3 class="text-xl font-bold m-0">Windows</h3>
+                            <a href="./launchers/install-windows.ps1" download class="text-blue-600 font-semibold no-underline hover:underline">下载安装器</a>
+                        </div>
+                        <p class="text-sm">创建桌面和开始菜单快捷方式，自动下载 ICO；仅本次 PowerShell 子进程使用 Bypass，不修改系统策略。</p>
+                        <pre class="text-xs overflow-x-auto"><code>$Installer = Join-Path $env:TEMP 'install-mcp-partner-windows.ps1'
+Invoke-WebRequest 'https://mcp-partner.github.io/launchers/install-windows.ps1' -OutFile $Installer
+Get-Content $Installer
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File $Installer</code></pre>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold mb-3">与原 Linux 启动项相比</h3>
+                <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                    <li><code>--app</code> 后使用普通 URL，不使用 Markdown 链接格式。</li>
+                    <li>专用 profile 放在用户数据目录；Chromium 要求 <code>--disable-web-security</code> 与 <code>--user-data-dir</code> 同时使用。</li>
+                    <li>移除不必要的 <code>--test-type</code> 和过时的 <code>SecFetchMetadata</code> feature 名，也绝不忽略 TLS 证书错误。</li>
+                    <li>Chrome 142+ 可能显示 Local Network Access 提示；只允许你信任的本地 MCP 服务。</li>
+                </ul>
+
+                <p class="mt-6">使用 <code>--uninstall</code>（Windows 为 <code>-Uninstall</code>）删除快捷方式并保留 profile；使用 <code>--purge</code> / <code>-Purge</code> 同时删除专用 profile。此模式不能绕过服务器认证、服务端 <code>Origin</code> 拒绝、TLS 证书错误或网络故障。</p>
+            </section>
+
             <footer class="mt-20 pt-8 border-t border-slate-200 text-center text-slate-500 text-sm">
-                <p>&copy; 2025 MCP Partner. Open Source.</p>
+                <p>&copy; 2026 MCP Partner. Open Source.</p>
             </footer>
 
         </div>
@@ -290,13 +350,13 @@ w.Header().Set("Access-Control-Allow-Credentials", "true")</code></pre>
         <!-- Main Content (English) -->
         <div id="content-en" class="flex-1 prose max-w-none" style="display: none;">
             
-            <section id="introduction" class="mb-16">
+            <section id="introduction-en" class="mb-16">
                 <h1 class="text-4xl font-extrabold text-slate-900 mb-6">Introduction</h1>
                 <p class="text-lg text-slate-600 leading-relaxed">
                     MCP Partner is a client-side debugging and interaction tool for the <a href="https://modelcontextprotocol.io/" class="text-blue-600 underline" target="_blank">Model Context Protocol (MCP)</a>. 
                     Think of it as "Postman for MCP". It allows developers to connect to MCP servers, discover available tools, and execute them with an intuitive UI.
                     <br><br>
-                    <strong>New:</strong> Now with full support for <strong>Streamable HTTP</strong>, providing a robust, standard HTTP stream-based interaction.
+                    <strong>New:</strong> The connection layer now uses the official TypeScript SDK v2 to negotiate <strong>2026-07-28 Streamable HTTP</strong> and remain compatible with 2025 legacy and HTTP+SSE servers.
                 </p>
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
                     <p class="text-blue-800 font-medium m-0">
@@ -305,7 +365,7 @@ w.Header().Set("Access-Control-Allow-Credentials", "true")</code></pre>
                 </div>
             </section>
 
-            <section id="quick-start" class="mb-16 pt-8 border-t border-slate-100">
+            <section id="quick-start-en" class="mb-16 pt-8 border-t border-slate-100">
                 <h2 class="text-3xl font-bold text-slate-900 mb-6">Quick Start</h2>
                 
                 <div class="space-y-8">
@@ -326,14 +386,14 @@ w.Header().Set("Access-Control-Allow-Credentials", "true")</code></pre>
                             <h3 class="text-xl font-bold text-slate-900 m-0">Select Transport</h3>
                         </div>
                         <p>
-                            Choose between <strong>SSE</strong> and <strong>Streamable HTTP</strong>. Streamable HTTP provides a modern streaming experience over standard HTTP POST.
+                            Prefer <strong>Streamable HTTP</strong>. Select <strong>SSE</strong> only for a legacy 2024-11-05 server with separate SSE and POST endpoints.
                         </p>
                     </div>
 
                     <div>
                         <div class="flex items-center gap-3 mb-3">
                             <span class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-700 rounded-full font-bold">3</span>
-                            <h3 class="text-xl font-bold text-slate-900 m-0">Execute & Debug</h3>
+                            <h3 class="text-xl font-bold text-slate-900 m-0">Execute &amp; Debug</h3>
                         </div>
                         <p>
                             Fill in the parameters using the auto-generated Form view or switch to JSON view for raw editing. Click <strong>Send</strong> to execute the tool and view the JSON-RPC response in real-time.
@@ -342,19 +402,19 @@ w.Header().Set("Access-Control-Allow-Credentials", "true")</code></pre>
                 </div>
             </section>
 
-            <section id="features" class="mb-16 pt-8 border-t border-slate-100">
+            <section id="features-en" class="mb-16 pt-8 border-t border-slate-100">
                 <h2 class="text-3xl font-bold text-slate-900 mb-6">Key Features</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
                         <h4 class="font-bold text-slate-900 mb-2">Multi-Protocol</h4>
-                        <p class="text-sm text-slate-600 m-0">Supports both standard SSE (Server-Sent Events) and Streamable HTTP transports.</p>
+                        <p class="text-sm text-slate-600 m-0">Official SDK v2 support for modern 2026 and legacy 2025 Streamable HTTP, plus deprecated HTTP+SSE compatibility.</p>
                     </div>
                     <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
                         <h4 class="font-bold text-slate-900 mb-2">GitHub Pages Ready</h4>
                         <p class="text-sm text-slate-600 m-0">Pure static architecture, ready to deploy on GitHub Pages or any static host.</p>
                     </div>
                     <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
-                        <h4 class="font-bold text-slate-900 mb-2">Request History & Logs</h4>
+                        <h4 class="font-bold text-slate-900 mb-2">Request History &amp; Logs</h4>
                         <p class="text-sm text-slate-600 m-0">View full JSON-RPC traffic in the bottom console, including request IDs, methods, and full error stacks.</p>
                     </div>
                     <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
@@ -364,22 +424,22 @@ w.Header().Set("Access-Control-Allow-Credentials", "true")</code></pre>
                 </div>
             </section>
 
-            <section id="transports" class="mb-16 pt-8 border-t border-slate-100">
+            <section id="transports-en" class="mb-16 pt-8 border-t border-slate-100">
                 <h2 class="text-3xl font-bold text-slate-900 mb-6">Supported Transports</h2>
                 <div class="space-y-6">
                     <div>
                         <h3 class="text-lg font-bold text-slate-900">SSE (Server-Sent Events)</h3>
-                        <p>The default mode. The client connects via <code>GET</code> to receive events and discovers a <code>POST</code> endpoint for sending requests.</p>
+                        <p>Legacy compatibility mode. A <code>GET</code> stream advertises a separate <code>POST</code> endpoint. The transport is officially deprecated.</p>
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-slate-900">Streamable HTTP</h3>
-                        <p>Uses the newer MCP SDK transport method over HTTP streams. Useful for environments where standard SSE might be restrictive or for specific server implementations.</p>
+                        <p>Recommended. The SDK negotiates 2026 per-request POST/metadata/SSE behavior and automatically falls back to the 2025 initialize/session era.</p>
                     </div>
                 </div>
             </section>
 
-            <section id="cors-proxy" class="mb-16 pt-8 border-t border-slate-100">
-                <h2 class="text-3xl font-bold text-slate-900 mb-6">CORS & Proxying</h2>
+            <section id="cors-proxy-en" class="mb-16 pt-8 border-t border-slate-100">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6">CORS &amp; Proxying</h2>
                 <p>
                     Browsers enforce strict CORS (Cross-Origin Resource Sharing) policies. If your local MCP server does not send the correct <code>Access-Control-Allow-Origin</code> headers, the browser will block the connection.
                 </p>
@@ -390,10 +450,10 @@ w.Header().Set("Access-Control-Allow-Credentials", "true")</code></pre>
                 <h3 class="text-xl font-bold mb-3">Solutions</h3>
                 <ol class="list-decimal pl-5 space-y-2 text-slate-600">
                     <li>
-                        <strong>Use Proxy:</strong> Click the 🛡️ icon in the connection bar. If deploying on Vercel, it uses the built-in proxy. On GitHub Pages, it defaults to a public proxy.
+                        <strong>Use Proxy:</strong> Click the 🛡️ icon. Vercel deployments can use the hardened built-in <code>/cors?url=</code> Function. GitHub Pages has no proxy Function; configure server CORS or a trusted proxy.
                     </li>
                     <li>
-                        <strong>Configure your Server:</strong> Ensure your MCP server implementation sets <code>Access-Control-Allow-Origin: *</code> (or your specific domain) for both SSE and POST endpoints.
+                        <strong>Configure your Server:</strong> Allow the actual MCP Partner origin and all protocol methods/headers. Never use a wildcard origin together with credentials.
                     </li>
                     <li>
                         <strong>Use Pancors:</strong> For heavy local development, run a local proxy like <a href="https://github.com/Ericwyn/pancors" target="_blank" class="text-blue-600 underline">pancors</a>.
@@ -403,44 +463,44 @@ w.Header().Set("Access-Control-Allow-Credentials", "true")</code></pre>
                 <h3 class="text-xl font-bold mb-3">Server-Side CORS Configuration</h3>
                 <p>If you're developing an MCP server, it's recommended to properly configure CORS response headers:</p>
                 <div class="bg-slate-100 rounded-lg p-4 mb-6">
-                    <pre class="text-sm"><code>// Go language example
-w.Header().Set("Access-Control-Allow-Origin", "*")
-w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-w.Header().Set("Access-Control-Allow-Headers", "*")
-w.Header().Set("Access-Control-Expose-Headers", "*")
-w.Header().Set("Access-Control-Allow-Credentials", "true")</code></pre>
+                    <pre class="text-sm"><code>// Use the actual app origin; credentials cannot be combined with "*"
+w.Header().Set("Access-Control-Allow-Origin", "https://your-partner.example")
+w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type, Last-Event-ID, MCP-Protocol-Version, Mcp-Session-Id, Mcp-Method, Mcp-Name")
+w.Header().Set("Access-Control-Expose-Headers", "Content-Type, MCP-Protocol-Version, Mcp-Session-Id, Retry-After, WWW-Authenticate")
+w.Header().Add("Vary", "Origin")</code></pre>
                 </div>
 
                 <h4 class="text-lg font-bold mb-3">Header Explanations:</h4>
                 <div class="space-y-3 mb-6">
                     <div class="flex items-start gap-3">
                         <div>
-                            <code class="font-semibold">Access-Control-Allow-Origin: *</code>
-                            <p class="text-sm text-slate-600 mt-1">Allows any domain's frontend to access your server (essential)</p>
+                            <code class="font-semibold">Access-Control-Allow-Origin</code>
+                            <p class="text-sm text-slate-600 mt-1">Allow the actual MCP Partner origin; use an exact origin for authenticated access</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3">
                         <div>
                             <code class="font-semibold">Access-Control-Allow-Methods</code>
-                            <p class="text-sm text-slate-600 mt-1">Allowed HTTP methods - MCP mainly uses GET (SSE) and POST</p>
+                            <p class="text-sm text-slate-600 mt-1">2026 uses POST; legacy Streamable HTTP/SSE can also use GET and DELETE</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3">
                         <div>
-                            <code class="font-semibold">Access-Control-Allow-Headers: *</code>
-                            <p class="text-sm text-slate-600 mt-1">Allows frontend to send custom headers (Content-Type, Mcp-Session-Id)</p>
+                            <code class="font-semibold">Access-Control-Allow-Headers</code>
+                            <p class="text-sm text-slate-600 mt-1">Include MCP-Protocol-Version, Mcp-Method, Mcp-Name, and dynamic Mcp-Param-* headers</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3">
                         <div>
-                            <code class="font-semibold">Access-Control-Expose-Headers: *</code>
-                            <p class="text-sm text-slate-600 mt-1">Allows frontend to read mcp-session-id from response headers (critical)</p>
+                            <code class="font-semibold">Access-Control-Expose-Headers</code>
+                            <p class="text-sm text-slate-600 mt-1">Let the SDK read Content-Type, legacy session headers, and WWW-Authenticate</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3">
                         <div>
-                            <code class="font-semibold">Access-Control-Allow-Credentials: true</code>
-                            <p class="text-sm text-slate-600 mt-1">Allows sending authentication credentials (optional, only when needed)</p>
+                            <code class="font-semibold">Vary: Origin</code>
+                            <p class="text-sm text-slate-600 mt-1">Prevents cache confusion when CORS is generated for each request origin</p>
                         </div>
                     </div>
                 </div>
@@ -450,12 +510,72 @@ w.Header().Set("Access-Control-Allow-Credentials", "true")</code></pre>
                     <li><strong>Check Browser Console</strong> - Open DevTools to view Console and Network tabs</li>
                     <li><strong>Verify Preflight Requests</strong> - Check if OPTIONS responses include CORS headers</li>
                     <li><strong>Test Minimal Configuration</strong> - Start with just the three essential headers</li>
-                    <li><strong>Check Session ID Transmission</strong> - Look for `[HTTP] Session ID captured:` in console</li>
+                    <li><strong>Check Negotiation</strong> - The Connected log shows the modern/legacy era and negotiated protocol version</li>
                 </ol>
             </section>
 
+            <section id="browser-shell-en" class="mb-16 pt-8 border-t border-slate-100">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6">Install a desktop browser shell</h2>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <p class="text-blue-900 m-0"><strong>Recommended:</strong> if server CORS or a trusted proxy already works, use the install icon in the Chrome or Edge address bar. The standard PWA obtains its icon automatically and keeps browser security enabled.</p>
+                </div>
+
+                <p>GitHub Pages cannot run a server-side proxy. For an explicitly trusted development service, the installers below can create an isolated Chromium <code>--app</code> window. This is not Electron, does not bundle a browser, requires no administrator access, and installs its icon automatically.</p>
+
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+                    <p class="text-red-900 font-bold m-0 text-sm">High-risk mode: same-origin and CORS protections are disabled in the dedicated profile. Use this window only for MCP Partner; never sign in, install extensions, or browse other sites. Select “Don't show again” to dismiss the notice permanently in this profile.</p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 mb-8">
+                    <div class="p-5 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="flex items-center justify-between gap-4 flex-wrap">
+                            <h3 class="text-xl font-bold m-0">Linux</h3>
+                            <a href="./launchers/install-linux.sh" download class="text-blue-600 font-semibold no-underline hover:underline">Download installer</a>
+                        </div>
+                        <p class="text-sm">Creates a user-local wrapper, desktop entry, and themed icon under <code>~/.local</code>; it no longer relies on <code>/opt</code>.</p>
+                        <pre class="text-xs overflow-x-auto"><code>curl --proto '=https' --tlsv1.2 -fsSL https://mcp-partner.github.io/launchers/install-linux.sh -o /tmp/install-mcp-partner-linux.sh
+less /tmp/install-mcp-partner-linux.sh
+bash /tmp/install-mcp-partner-linux.sh</code></pre>
+                    </div>
+
+                    <div class="p-5 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="flex items-center justify-between gap-4 flex-wrap">
+                            <h3 class="text-xl font-bold m-0">macOS</h3>
+                            <a href="./launchers/install-macos.sh" download class="text-blue-600 font-semibold no-underline hover:underline">Download installer</a>
+                        </div>
+                        <p class="text-sm">Generates a shell-based <code>.app</code> under <code>~/Applications</code> and converts the PNG into a multi-resolution <code>.icns</code>.</p>
+                        <pre class="text-xs overflow-x-auto"><code>curl --proto '=https' --tlsv1.2 -fsSL https://mcp-partner.github.io/launchers/install-macos.sh -o /tmp/install-mcp-partner-macos.sh
+less /tmp/install-mcp-partner-macos.sh
+bash /tmp/install-mcp-partner-macos.sh</code></pre>
+                    </div>
+
+                    <div class="p-5 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="flex items-center justify-between gap-4 flex-wrap">
+                            <h3 class="text-xl font-bold m-0">Windows</h3>
+                            <a href="./launchers/install-windows.ps1" download class="text-blue-600 font-semibold no-underline hover:underline">Download installer</a>
+                        </div>
+                        <p class="text-sm">Creates Desktop and Start menu shortcuts and downloads the ICO. Bypass applies only to the child PowerShell process and does not change system policy.</p>
+                        <pre class="text-xs overflow-x-auto"><code>$Installer = Join-Path $env:TEMP 'install-mcp-partner-windows.ps1'
+Invoke-WebRequest 'https://mcp-partner.github.io/launchers/install-windows.ps1' -OutFile $Installer
+Get-Content $Installer
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File $Installer</code></pre>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold mb-3">Improvements over the original Linux entry</h3>
+                <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                    <li>The <code>--app</code> value is a plain URL, not Markdown link syntax.</li>
+                    <li>The dedicated profile lives in user data; Chromium requires <code>--user-data-dir</code> for <code>--disable-web-security</code>.</li>
+                    <li>Unnecessary <code>--test-type</code> and the obsolete <code>SecFetchMetadata</code> feature name are omitted; TLS errors are never ignored.</li>
+                    <li>Chrome 142+ can prompt for Local Network Access. Allow only a local MCP service you trust.</li>
+                </ul>
+
+                <p class="mt-6">Use <code>--uninstall</code> (<code>-Uninstall</code> on Windows) to remove shortcuts but keep the profile; use <code>--purge</code> / <code>-Purge</code> to delete the dedicated profile too. This mode cannot bypass server authentication, a server-side <code>Origin</code> rejection, TLS certificate errors, or network failures.</p>
+            </section>
+
             <footer class="mt-20 pt-8 border-t border-slate-200 text-center text-slate-500 text-sm">
-                <p>&copy; 2025 MCP Partner. Open Source.</p>
+                <p>&copy; 2026 MCP Partner. Open Source.</p>
             </footer>
 
         </div>

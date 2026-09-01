@@ -34,18 +34,32 @@ interface HeaderItem {
     value: string;
 }
 
-// Detect if we are likely on Vercel or Localhost where /cors endpoint exists.
-const isVercelOrLocal = typeof window !== 'undefined' && (
-    window.location.hostname.includes('vercel.app') || 
-    window.location.hostname.includes('localhost') ||
-    window.location.hostname.includes('127.0.0.1')
-);
+// Known Vercel hostnames can use the bundled Function immediately. Custom
+// domains and `vercel dev` are discovered by the capability probe below.
+const isKnownVercel = typeof window !== 'undefined'
+    && window.location.hostname.endsWith('.vercel.app');
 
 // Detect if running in Wails environment
 const isWails = typeof window !== 'undefined' && window['wails'];
 const WAILS_PROXY_URL = 'http://127.0.0.1:36875/?url=';
 
-const DEFAULT_PROXY_URL = isWails ? WAILS_PROXY_URL : (isVercelOrLocal ? '/cors?url=' : 'https://corsproxy.io/?url=');
+// Never send MCP credentials through an untrusted public proxy by default.
+// Vercel custom domains are detected at runtime via the /cors capability probe.
+const BUILT_IN_PROXY_URL = '/cors?url=';
+const DEFAULT_PROXY_URL = isWails ? WAILS_PROXY_URL : (isKnownVercel ? BUILT_IN_PROXY_URL : '');
+const LEGACY_PUBLIC_PROXY_URL = 'https://corsproxy.io/?url=';
+
+const readStoredProxy = (key: string): string | null => {
+    const value = localStorage.getItem(key);
+    // Older releases persisted this third-party service as an automatic
+    // default. Remove that implicit trust; users can still enter a proxy they
+    // have deliberately reviewed.
+    if (value === LEGACY_PUBLIC_PROXY_URL) {
+        localStorage.removeItem(key);
+        return null;
+    }
+    return value;
+};
 
 // Helper for normalization
 const normalizeTransport = (t: string | undefined | null): TransportType => {
@@ -64,11 +78,11 @@ export const ConnectionBar = forwardRef<ConnectionBarRef, ConnectionBarProps>(({
   serverRegistry, setServerRegistry, extensionRegistry, setExtensionRegistry
 }, ref) => {
   const [url, setUrl] = useState(''); // Initial URL empty
-  const [transport, setTransport] = useState<TransportType>('sse');
+  const [transport, setTransport] = useState<TransportType>('streamable_http');
   
   // Global Default Proxy State
   const [globalProxyPrefix, setGlobalProxyPrefix] = useState(() => {
-      return localStorage.getItem('mcp_default_proxy_url') || DEFAULT_PROXY_URL;
+      return readStoredProxy('mcp_default_proxy_url') || DEFAULT_PROXY_URL;
   });
 
   const [useProxy, setUseProxy] = useState(false);
@@ -120,7 +134,7 @@ export const ConnectionBar = forwardRef<ConnectionBarRef, ConnectionBarProps>(({
   // Load last used settings for current inputs (runs once)
   useEffect(() => {
     const lastProxy = localStorage.getItem('mcp_last_use_proxy');
-    const lastPrefix = localStorage.getItem('mcp_last_proxy_prefix');
+    const lastPrefix = readStoredProxy('mcp_last_proxy_prefix');
     const lastTransport = localStorage.getItem('mcp_last_transport');
     
     if (lastProxy !== null) setUseProxy(lastProxy === 'true');
@@ -141,7 +155,36 @@ export const ConnectionBar = forwardRef<ConnectionBarRef, ConnectionBarProps>(({
   useEffect(() => { localStorage.setItem('mcp_last_transport', transport); }, [transport]);
   
   // Persist Global Proxy Setting
-  useEffect(() => { localStorage.setItem('mcp_default_proxy_url', globalProxyPrefix); }, [globalProxyPrefix]);
+  useEffect(() => {
+      if (globalProxyPrefix.trim()) {
+          localStorage.setItem('mcp_default_proxy_url', globalProxyPrefix);
+      } else {
+          localStorage.removeItem('mcp_default_proxy_url');
+      }
+  }, [globalProxyPrefix]);
+
+  // Detect the bundled Vercel Function even when the deployment uses a
+  // custom domain that does not end in vercel.app. Static hosts may return
+  // HTML for /cors; the marker header prevents false positives.
+  useEffect(() => {
+    if (isWails || localStorage.getItem('mcp_default_proxy_url')) return;
+
+    const controller = new AbortController();
+    fetch('/cors', { method: 'OPTIONS', signal: controller.signal })
+      .then((response) => {
+        if (response.ok && response.headers.get('x-mcp-proxy') === 'mcp-partner') {
+          setGlobalProxyPrefix(BUILT_IN_PROXY_URL);
+          if (!localStorage.getItem('mcp_last_proxy_prefix')) {
+            setProxyPrefix(BUILT_IN_PROXY_URL);
+          }
+        }
+      })
+      .catch(() => {
+        // A static host without the Function is expected to fail this probe.
+      });
+
+    return () => controller.abort();
+  }, []);
 
   // Force proxy settings when running in Wails environment
   useEffect(() => {
@@ -751,7 +794,7 @@ export const ConnectionBar = forwardRef<ConnectionBarRef, ConnectionBarProps>(({
                                     value={proxyPrefix}
                                     onChange={e => setProxyPrefix(e.target.value)}
                                     onKeyDown={handleEnterKey}
-                                    placeholder={`Default: ${globalProxyPrefix}`}
+                                    placeholder={globalProxyPrefix ? `Default: ${globalProxyPrefix}` : 'https://your-proxy.example/?url='}
                                     disabled={isWails}
                                 />
                               {!isWails && (

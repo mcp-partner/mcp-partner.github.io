@@ -1,5 +1,12 @@
 
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "fluid": true,
+  "functions": {
+    "api/cors.ts": {
+      "maxDuration": 300
+    }
+  },
   "rewrites": [
     {
       "source": "/cors",
