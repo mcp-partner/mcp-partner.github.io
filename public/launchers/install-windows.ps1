@@ -48,6 +48,9 @@ function Find-ChromiumBrowser {
         "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
         "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
         "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe",
+        "$env:ProgramFiles\Chromium\Application\chrome.exe",
+        "${env:ProgramFiles(x86)}\Chromium\Application\chrome.exe",
+        "$env:LOCALAPPDATA\Chromium\Application\chrome.exe",
         "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe",
         "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe",
         "$env:LOCALAPPDATA\Microsoft\Edge\Application\msedge.exe",
@@ -66,7 +69,7 @@ function Find-ChromiumBrowser {
 
 $BrowserPath = Find-ChromiumBrowser
 if (-not $BrowserPath) {
-    throw 'No supported Chromium browser found. Install Chrome, Edge, or Brave first.'
+    throw 'No supported Chromium browser found. Install Chrome, Chromium, Edge, or Brave first.'
 }
 
 New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
@@ -90,6 +93,7 @@ $Arguments = @(
     "--user-data-dir=`"$ProfileDir`""
     '--disable-web-security'
     '--allow-running-insecure-content'
+    '--test-type'
     '--disable-extensions'
     '--disable-sync'
     '--no-first-run'
@@ -112,7 +116,7 @@ foreach ($ShortcutPath in @($DesktopShortcut, $StartMenuShortcut)) {
 Write-Host "Installed: $AppName"
 Write-Host "Browser:   $BrowserPath"
 Write-Host "Desktop:   $DesktopShortcut"
-Write-Host "Start Menu:$StartMenuShortcut"
+Write-Host "Start Menu: $StartMenuShortcut"
 Write-Host "Profile:   $ProfileDir"
 Write-Host "Manage:    $ManagerPath"
 Write-Host ''

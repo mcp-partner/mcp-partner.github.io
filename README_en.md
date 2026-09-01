@@ -127,9 +127,11 @@ No root access is required. The installer finds Chrome, Chromium, Edge, or Brave
 curl --proto '=https' --tlsv1.2 -fsSL \
   https://mcp-partner.github.io/launchers/install-linux.sh \
   -o /tmp/install-mcp-partner-linux.sh
-less /tmp/install-mcp-partner-linux.sh
+sed -n '1,260p' /tmp/install-mcp-partner-linux.sh
 bash /tmp/install-mcp-partner-linux.sh
 ```
+
+The `sed` step prints the script and returns to the prompt automatically. It does not enter an interactive pager like `less`, which requires pressing `q` to exit.
 
 The generated `.desktop` points to a user-local wrapper instead of `/opt`:
 
@@ -153,7 +155,7 @@ The installer generates a tiny local `.app` shell wrapper in `~/Applications` an
 curl --proto '=https' --tlsv1.2 -fsSL \
   https://mcp-partner.github.io/launchers/install-macos.sh \
   -o /tmp/install-mcp-partner-macos.sh
-less /tmp/install-mcp-partner-macos.sh
+sed -n '1,240p' /tmp/install-mcp-partner-macos.sh
 bash /tmp/install-mcp-partner-macos.sh
 open "$HOME/Applications/MCP Partner CORS Bypass.app"
 ```
@@ -178,9 +180,10 @@ All three installers use this minimal set of relevant switches:
 --user-data-dir=<dedicated profile>
 --disable-web-security
 --allow-running-insecure-content
+--test-type
 ```
 
-They intentionally omit `--test-type`, `--ignore-certificate-errors`, and `--disable-features=SecFetchMetadata`. Chrome 142+ may also prompt for Local Network Access when connecting to a local or LAN MCP server; allow only servers you trust. This setup bypasses only browser-side CORS/mixed-content checks. It cannot bypass server authentication, an `Origin` rejection, TLS certificate errors, or network reachability.
+`--test-type` is used only to suppress Chrome's “unsupported `--disable-web-security` flag” infobar; it does not grant the page additional permissions. The launchers still omit `--ignore-certificate-errors` and `--disable-features=SecFetchMetadata`. Chrome 142+ may also prompt for Local Network Access when connecting to a local or LAN MCP server; allow only servers you trust. This setup bypasses only browser-side CORS/mixed-content checks. It cannot bypass server authentication, an `Origin` rejection, TLS certificate errors, or network reachability.
 
 Remove the shortcuts while retaining the dedicated profile:
 

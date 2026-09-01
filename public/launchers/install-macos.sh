@@ -6,6 +6,7 @@ ASSET_BASE_URL="https://mcp-partner.github.io"
 APP_DIR="$HOME/Applications/${APP_NAME}.app"
 SUPPORT_DIR="$HOME/Library/Application Support/${APP_NAME}"
 PROFILE_DIR="${SUPPORT_DIR}/ChromeProfile"
+BROWSER_CONFIG="${SUPPORT_DIR}/browser-path"
 MANAGER_PATH="${SUPPORT_DIR}/install-macos.sh"
 
 usage() {
@@ -65,9 +66,13 @@ find_browser() {
   fi
   for candidate in \
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+    "$HOME/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
     "/Applications/Chromium.app/Contents/MacOS/Chromium" \
+    "$HOME/Applications/Chromium.app/Contents/MacOS/Chromium" \
     "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge" \
-    "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"; do
+    "$HOME/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge" \
+    "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" \
+    "$HOME/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"; do
     if [[ -x "$candidate" ]]; then
       printf '%s\n' "$candidate"
       return 0
@@ -92,6 +97,8 @@ SCRIPT_PATH="${SCRIPT_DIR}/$(basename -- "$0")"
 if [[ "$SCRIPT_PATH" != "$MANAGER_PATH" ]]; then
   install -m 0755 "$SCRIPT_PATH" "$MANAGER_PATH"
 fi
+printf '%s\n' "$BROWSER_PATH" > "$BROWSER_CONFIG"
+chmod 0600 "$BROWSER_CONFIG"
 
 cat > "$CONTENTS_DIR/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -119,6 +126,7 @@ set -euo pipefail
 
 APP_URL="${MCP_PARTNER_URL:-https://mcp-partner.github.io/?unsafe-cors-bypass=1}"
 PROFILE_DIR="$HOME/Library/Application Support/MCP Partner CORS Bypass/ChromeProfile"
+BROWSER_CONFIG="$HOME/Library/Application Support/MCP Partner CORS Bypass/browser-path"
 
 find_browser() {
   local candidate
@@ -126,11 +134,23 @@ find_browser() {
     printf '%s\n' "$MCP_PARTNER_BROWSER"
     return 0
   fi
+  if [[ -r "$BROWSER_CONFIG" ]]; then
+    local configured_browser
+    IFS= read -r configured_browser < "$BROWSER_CONFIG" || true
+    if [[ -n "$configured_browser" && -x "$configured_browser" ]]; then
+      printf '%s\n' "$configured_browser"
+      return 0
+    fi
+  fi
   for candidate in \
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+    "$HOME/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
     "/Applications/Chromium.app/Contents/MacOS/Chromium" \
+    "$HOME/Applications/Chromium.app/Contents/MacOS/Chromium" \
     "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge" \
-    "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"; do
+    "$HOME/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge" \
+    "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" \
+    "$HOME/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"; do
     if [[ -x "$candidate" ]]; then
       printf '%s\n' "$candidate"
       return 0
@@ -151,6 +171,7 @@ exec "$BROWSER_PATH" \
   "--user-data-dir=${PROFILE_DIR}" \
   --disable-web-security \
   --allow-running-insecure-content \
+  --test-type \
   --disable-extensions \
   --disable-sync \
   --no-first-run \

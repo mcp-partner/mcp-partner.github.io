@@ -8,6 +8,7 @@ DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 BIN_HOME="${HOME}/.local/bin"
 INSTALL_ROOT="${DATA_HOME}/mcp-partner-cors-bypass"
 PROFILE_DIR="${INSTALL_ROOT}/chrome-profile"
+BROWSER_CONFIG="${INSTALL_ROOT}/browser-path"
 MANAGER_PATH="${INSTALL_ROOT}/install-linux.sh"
 LAUNCHER_PATH="${BIN_HOME}/mcp-partner-cors-bypass"
 DESKTOP_DIR="${DATA_HOME}/applications"
@@ -112,6 +113,8 @@ SCRIPT_PATH="${SCRIPT_DIR}/$(basename -- "$0")"
 if [[ "$SCRIPT_PATH" != "$MANAGER_PATH" ]]; then
   install -m 0755 "$SCRIPT_PATH" "$MANAGER_PATH"
 fi
+printf '%s\n' "$BROWSER_PATH" > "$BROWSER_CONFIG"
+chmod 0600 "$BROWSER_CONFIG"
 
 LOCAL_ICON="${SCRIPT_DIR}/../icon_512px.png"
 if [[ -f "$LOCAL_ICON" ]]; then
@@ -137,6 +140,7 @@ set -euo pipefail
 APP_URL="${MCP_PARTNER_URL:-https://mcp-partner.github.io/?unsafe-cors-bypass=1}"
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 PROFILE_DIR="${DATA_HOME}/mcp-partner-cors-bypass/chrome-profile"
+BROWSER_CONFIG="${DATA_HOME}/mcp-partner-cors-bypass/browser-path"
 
 find_browser() {
   local candidate
@@ -147,6 +151,14 @@ find_browser() {
     fi
     if command -v "$MCP_PARTNER_BROWSER" >/dev/null 2>&1; then
       command -v "$MCP_PARTNER_BROWSER"
+      return 0
+    fi
+  fi
+  if [[ -r "$BROWSER_CONFIG" ]]; then
+    local configured_browser
+    IFS= read -r configured_browser < "$BROWSER_CONFIG" || true
+    if [[ -n "$configured_browser" && -x "$configured_browser" ]]; then
+      printf '%s\n' "$configured_browser"
       return 0
     fi
   fi
@@ -173,6 +185,7 @@ exec "$BROWSER_PATH" \
   "--user-data-dir=${PROFILE_DIR}" \
   --disable-web-security \
   --allow-running-insecure-content \
+  --test-type \
   --disable-extensions \
   --disable-sync \
   --no-first-run \

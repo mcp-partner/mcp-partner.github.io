@@ -9,11 +9,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
     <style>
+        html, body { max-width: 100%; overflow-x: hidden; }
         body { font-family: 'Inter', sans-serif; }
+        .prose { min-width: 0; overflow-wrap: anywhere; }
         .prose h3 { margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; color: #1e293b; }
         .prose p { margin-bottom: 1rem; color: #475569; line-height: 1.6; }
         .prose code { background-color: #f1f5f9; padding: 0.125rem 0.25rem; border-radius: 0.25rem; font-size: 0.875em; color: #0f172a; font-family: monospace; }
-        .prose pre { background-color: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 1rem; }
+        .prose pre { width: 100%; max-width: 100%; background-color: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; overscroll-behavior-inline: contain; margin-bottom: 1rem; }
+        .prose pre code { white-space: pre; overflow-wrap: normal; word-break: normal; }
+        .prose img, .prose table { max-width: 100%; }
         .nav-link { color: #64748b; font-weight: 500; transition: color 0.2s; }
         .nav-link:hover { color: #2563eb; }
         .active-lang { color: #2563eb; font-weight: 700; background-color: #eff6ff; }
@@ -24,7 +28,7 @@
                 document.getElementById('content-zh').style.display = 'none';
                 document.getElementById('content-en').style.display = 'block';
                 document.getElementById('sidebar-zh').style.display = 'none';
-                document.getElementById('sidebar-en').style.display = 'block';
+                document.getElementById('sidebar-en').style.display = '';
                 
                 document.getElementById('btn-zh').classList.remove('active-lang');
                 document.getElementById('btn-en').classList.add('active-lang');
@@ -33,7 +37,7 @@
                 document.getElementById('content-en').style.display = 'none';
                 document.getElementById('content-zh').style.display = 'block';
                 document.getElementById('sidebar-en').style.display = 'none';
-                document.getElementById('sidebar-zh').style.display = 'block';
+                document.getElementById('sidebar-zh').style.display = '';
 
                 document.getElementById('btn-en').classList.remove('active-lang');
                 document.getElementById('btn-zh').classList.add('active-lang');
@@ -49,7 +53,7 @@
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <img src="icon.svg" alt="Logo" class="w-8 h-8">
-                <span class="font-bold text-lg text-slate-900 tracking-tight">MCP Partner <span class="text-slate-400 font-normal ml-2 text-sm">Docs</span></span>
+                <span class="hidden sm:inline font-bold text-lg text-slate-900 tracking-tight">MCP Partner <span class="text-slate-400 font-normal ml-2 text-sm">Docs</span></span>
             </div>
             <div class="flex items-center gap-4">
                 <div class="flex items-center bg-slate-100 rounded-lg p-1 text-xs font-medium">
@@ -66,7 +70,7 @@
         </div>
     </header>
 
-    <main class="pt-24 pb-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-12">
+    <main class="w-full min-w-0 pt-24 pb-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-12">
         
         <!-- Sidebar Navigation (Chinese) -->
         <aside id="sidebar-zh" class="w-full md:w-64 shrink-0 hidden md:block relative">
@@ -91,7 +95,7 @@
         </aside>
 
         <!-- Sidebar Navigation (English) -->
-        <aside id="sidebar-en" class="w-full md:w-64 shrink-0 hidden relative" style="display: none;">
+        <aside id="sidebar-en" class="w-full md:w-64 shrink-0 hidden md:block relative" style="display: none;">
             <div class="fixed top-24 w-64 space-y-8 h-[calc(100vh-6rem)] overflow-y-auto pr-4">
                 <div>
                     <h5 class="font-bold text-slate-900 mb-4">Getting Started</h5>
@@ -113,7 +117,7 @@
         </aside>
 
         <!-- Main Content (Chinese) -->
-        <div id="content-zh" class="flex-1 prose max-w-none">
+        <div id="content-zh" class="flex-1 min-w-0 w-full prose max-w-none">
             
             <section id="introduction-zh" class="mb-16">
                 <h1 class="text-4xl font-extrabold text-slate-900 mb-6">简介</h1>
@@ -300,9 +304,9 @@ w.Header().Add("Vary", "Origin")</code></pre>
                             <h3 class="text-xl font-bold m-0">Linux</h3>
                             <a href="./launchers/install-linux.sh" download class="text-blue-600 font-semibold no-underline hover:underline">下载安装器</a>
                         </div>
-                        <p class="text-sm">创建 <code>~/.local/share/applications</code> 启动项、用户级 wrapper 和主题图标，不再依赖 <code>/opt</code>。</p>
+                        <p class="text-sm">创建 <code>~/.local/share/applications</code> 启动项、用户级 wrapper 和主题图标，不再依赖 <code>/opt</code>。<code>sed</code> 只打印脚本并自动退出，不会进入编辑器或分页器。</p>
                         <pre class="text-xs overflow-x-auto"><code>curl --proto '=https' --tlsv1.2 -fsSL https://mcp-partner.github.io/launchers/install-linux.sh -o /tmp/install-mcp-partner-linux.sh
-less /tmp/install-mcp-partner-linux.sh
+sed -n '1,260p' /tmp/install-mcp-partner-linux.sh
 bash /tmp/install-mcp-partner-linux.sh</code></pre>
                     </div>
 
@@ -313,7 +317,7 @@ bash /tmp/install-mcp-partner-linux.sh</code></pre>
                         </div>
                         <p class="text-sm">在 <code>~/Applications</code> 生成 shell-based <code>.app</code>，并自动将 PNG 转换成多尺寸 <code>.icns</code>。</p>
                         <pre class="text-xs overflow-x-auto"><code>curl --proto '=https' --tlsv1.2 -fsSL https://mcp-partner.github.io/launchers/install-macos.sh -o /tmp/install-mcp-partner-macos.sh
-less /tmp/install-mcp-partner-macos.sh
+sed -n '1,240p' /tmp/install-mcp-partner-macos.sh
 bash /tmp/install-mcp-partner-macos.sh</code></pre>
                     </div>
 
@@ -334,7 +338,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File $Installer</code></pre>
                 <ul class="list-disc pl-5 space-y-2 text-slate-600">
                     <li><code>--app</code> 后使用普通 URL，不使用 Markdown 链接格式。</li>
                     <li>专用 profile 放在用户数据目录；Chromium 要求 <code>--disable-web-security</code> 与 <code>--user-data-dir</code> 同时使用。</li>
-                    <li>移除不必要的 <code>--test-type</code> 和过时的 <code>SecFetchMetadata</code> feature 名，也绝不忽略 TLS 证书错误。</li>
+                    <li>使用 <code>--test-type</code> 抑制 Chrome 对 <code>--disable-web-security</code> 的启动提示；仍然移除过时的 <code>SecFetchMetadata</code> feature 名，也绝不忽略 TLS 证书错误。</li>
                     <li>Chrome 142+ 可能显示 Local Network Access 提示；只允许你信任的本地 MCP 服务。</li>
                 </ul>
 
@@ -348,7 +352,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File $Installer</code></pre>
         </div>
 
         <!-- Main Content (English) -->
-        <div id="content-en" class="flex-1 prose max-w-none" style="display: none;">
+        <div id="content-en" class="flex-1 min-w-0 w-full prose max-w-none" style="display: none;">
             
             <section id="introduction-en" class="mb-16">
                 <h1 class="text-4xl font-extrabold text-slate-900 mb-6">Introduction</h1>
@@ -533,9 +537,9 @@ w.Header().Add("Vary", "Origin")</code></pre>
                             <h3 class="text-xl font-bold m-0">Linux</h3>
                             <a href="./launchers/install-linux.sh" download class="text-blue-600 font-semibold no-underline hover:underline">Download installer</a>
                         </div>
-                        <p class="text-sm">Creates a user-local wrapper, desktop entry, and themed icon under <code>~/.local</code>; it no longer relies on <code>/opt</code>.</p>
+                        <p class="text-sm">Creates a user-local wrapper, desktop entry, and themed icon under <code>~/.local</code>; it no longer relies on <code>/opt</code>. <code>sed</code> prints the script and exits automatically instead of opening an editor or pager.</p>
                         <pre class="text-xs overflow-x-auto"><code>curl --proto '=https' --tlsv1.2 -fsSL https://mcp-partner.github.io/launchers/install-linux.sh -o /tmp/install-mcp-partner-linux.sh
-less /tmp/install-mcp-partner-linux.sh
+sed -n '1,260p' /tmp/install-mcp-partner-linux.sh
 bash /tmp/install-mcp-partner-linux.sh</code></pre>
                     </div>
 
@@ -546,7 +550,7 @@ bash /tmp/install-mcp-partner-linux.sh</code></pre>
                         </div>
                         <p class="text-sm">Generates a shell-based <code>.app</code> under <code>~/Applications</code> and converts the PNG into a multi-resolution <code>.icns</code>.</p>
                         <pre class="text-xs overflow-x-auto"><code>curl --proto '=https' --tlsv1.2 -fsSL https://mcp-partner.github.io/launchers/install-macos.sh -o /tmp/install-mcp-partner-macos.sh
-less /tmp/install-mcp-partner-macos.sh
+sed -n '1,240p' /tmp/install-mcp-partner-macos.sh
 bash /tmp/install-mcp-partner-macos.sh</code></pre>
                     </div>
 
@@ -567,7 +571,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File $Installer</code></pre>
                 <ul class="list-disc pl-5 space-y-2 text-slate-600">
                     <li>The <code>--app</code> value is a plain URL, not Markdown link syntax.</li>
                     <li>The dedicated profile lives in user data; Chromium requires <code>--user-data-dir</code> for <code>--disable-web-security</code>.</li>
-                    <li>Unnecessary <code>--test-type</code> and the obsolete <code>SecFetchMetadata</code> feature name are omitted; TLS errors are never ignored.</li>
+                    <li><code>--test-type</code> suppresses Chrome's startup warning for <code>--disable-web-security</code>. The obsolete <code>SecFetchMetadata</code> feature name remains omitted, and TLS errors are never ignored.</li>
                     <li>Chrome 142+ can prompt for Local Network Access. Allow only a local MCP service you trust.</li>
                 </ul>
 

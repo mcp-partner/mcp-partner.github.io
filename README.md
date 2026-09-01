@@ -127,9 +127,11 @@ GitHub Pages 无法运行服务端代理。对于你信任的开发环境，也�
 curl --proto '=https' --tlsv1.2 -fsSL \
   https://mcp-partner.github.io/launchers/install-linux.sh \
   -o /tmp/install-mcp-partner-linux.sh
-less /tmp/install-mcp-partner-linux.sh
+sed -n '1,260p' /tmp/install-mcp-partner-linux.sh
 bash /tmp/install-mcp-partner-linux.sh
 ```
+
+其中 `sed` 只会把脚本打印到终端供检查，输出完成后自动返回命令行；不会像 `less` 那样进入需要按 `q` 退出的分页界面。
 
 生成的 `.desktop` 使用用户目录下的 wrapper，而不是 `/opt`：
 
@@ -153,7 +155,7 @@ StartupWMClass=mcp-partner-cors-bypass
 curl --proto '=https' --tlsv1.2 -fsSL \
   https://mcp-partner.github.io/launchers/install-macos.sh \
   -o /tmp/install-mcp-partner-macos.sh
-less /tmp/install-mcp-partner-macos.sh
+sed -n '1,240p' /tmp/install-mcp-partner-macos.sh
 bash /tmp/install-mcp-partner-macos.sh
 open "$HOME/Applications/MCP Partner CORS Bypass.app"
 ```
@@ -178,9 +180,10 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File $Installer
 --user-data-dir=<专用 profile>
 --disable-web-security
 --allow-running-insecure-content
+--test-type
 ```
 
-没有使用 `--test-type`、`--ignore-certificate-errors` 或 `--disable-features=SecFetchMetadata`。Chrome 142+ 访问本机或局域网 MCP 时还可能显示 Local Network Access 权限提示；只对你确认可信的服务选择允许。此方式只能绕过浏览器侧 CORS/混合内容限制，不能绕过服务器认证、`Origin` 拒绝、TLS 证书错误或网络不可达。
+`--test-type` 只用于阻止 Chrome 显示“`--disable-web-security` 是不受支持的命令行标记”提示，不会进一步放宽网页权限。没有使用 `--ignore-certificate-errors` 或 `--disable-features=SecFetchMetadata`。Chrome 142+ 访问本机或局域网 MCP 时还可能显示 Local Network Access 权限提示；只对你确认可信的服务选择允许。此方式只能绕过浏览器侧 CORS/混合内容限制，不能绕过服务器认证、`Origin` 拒绝、TLS 证书错误或网络不可达。
 
 卸载快捷方式但保留独立 profile：
 

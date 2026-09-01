@@ -21,7 +21,7 @@
 - `/opt/mcp-partner-chrome` 通常需要管理员权限。用户级应用数据更适合放在 XDG 目录中。
 - Desktop Entry 的 `Exec` 不是普通 shell 命令，不应依赖 `$HOME`、`~` 或复杂 quoting；wrapper 可以稳定处理这些细节。
 - 重复传入 `--disable-features` 容易互相覆盖，而且 `SecFetchMetadata` 不是当前 Chromium feature 名。这里不关闭 Fetch Metadata。
-- `--test-type` 是 Chromium 测试基础设施使用的开关，不是解决 CORS 所必需。
+- Chrome 会把 `--disable-web-security` 列为危险参数并显示常驻 infobar。启动器使用 `--test-type` 让 Chromium 跳过这类启动提示；它不负责绕过 CORS，也不会额外关闭 sandbox 或 TLS 校验。
 - 不应加入 `--ignore-certificate-errors`。证书错误应在服务器端正确修复。
 
 安装器最终生成的 Desktop Entry 类似：
@@ -50,6 +50,7 @@ StartupWMClass=mcp-partner-cors-bypass
 --user-data-dir=<专用 profile>
 --disable-web-security
 --allow-running-insecure-content
+--test-type
 --disable-extensions
 --disable-sync
 --no-first-run
@@ -60,7 +61,7 @@ StartupWMClass=mcp-partner-cors-bypass
 
 ## 自动安装
 
-不要直接执行未经检查的远程脚本。下面的命令先下载、显示内容，再运行。
+不要直接执行未经检查的远程脚本。下面的命令先下载、显示内容，再运行。这里使用非交互式 `sed`；打印完成后会自动返回命令行，不会进入 Vim，也不会像 `less` 那样等待按 `q` 退出。
 
 ### Linux
 
@@ -68,7 +69,7 @@ StartupWMClass=mcp-partner-cors-bypass
 curl --proto '=https' --tlsv1.2 -fsSL \
   https://mcp-partner.github.io/launchers/install-linux.sh \
   -o /tmp/install-mcp-partner-linux.sh
-less /tmp/install-mcp-partner-linux.sh
+sed -n '1,260p' /tmp/install-mcp-partner-linux.sh
 bash /tmp/install-mcp-partner-linux.sh
 ```
 
@@ -89,7 +90,7 @@ bash /tmp/install-mcp-partner-linux.sh
 curl --proto '=https' --tlsv1.2 -fsSL \
   https://mcp-partner.github.io/launchers/install-macos.sh \
   -o /tmp/install-mcp-partner-macos.sh
-less /tmp/install-mcp-partner-macos.sh
+sed -n '1,240p' /tmp/install-mcp-partner-macos.sh
 bash /tmp/install-mcp-partner-macos.sh
 open "$HOME/Applications/MCP Partner CORS Bypass.app"
 ```
@@ -177,6 +178,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File $Manager -Purge
 ## 相关官方资料
 
 - [Chromium `--disable-web-security`：必须同时指定 `--user-data-dir`](https://chromium.googlesource.com/chromium/src.git/+/lkgr/content/public/common/content_switches.cc)
+- [Chromium 启动逻辑：`--test-type` 会跳过 bad-flags infobar](https://chromium.googlesource.com/chromium/src/+/HEAD/chrome/browser/ui/startup/startup_browser_creator_impl.cc)
 - [Chromium user data directory 说明](https://chromium.googlesource.com/chromium/src/+/show/master/docs/user_data_dir.md)
 - [Chrome Local Network Access](https://developer.chrome.com/blog/local-network-access)
 - [Chrome PWA 安装与 manifest icon](https://developer.chrome.com/docs/devtools/progressive-web-apps)
